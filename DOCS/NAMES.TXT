@@ -1,0 +1,48 @@
+Cat breeds to be used as codenames for the lean system (lsystem)
+
+1.0 Ragamuffin
+1.2 Snowshoe
+1.3 Minuet
+1.4 Sphynx
+1.5 Ragdoll
+
+Abyssinian
+Aegean
+Bobtail
+Longhair
+Polydactyl
+Shorthair
+Wirehair
+Mist
+Balinese
+Bengal
+Birman
+Bombay
+Burmese
+Spangled
+Chantilly
+Cheetoh
+Cornish
+Cymric
+Donskoy
+Mau
+Himalayan
+Javanese
+Korat
+Maine Coon
+Kurilian Bobtail
+Munchkin
+Norwegian
+Ojos Azules
+Oregon
+Bicolor
+Savannah
+Selkirk
+Serengeti
+Siamese
+Singapura
+Sosoke
+Somali
+Venkedisi
+Ussuri
+York Chocolate
