@@ -1,11 +1,13 @@
 uses
-  ats, strings,
+  strings,
   lcommon, lcbase, lbuilder, lcmdline, ltexts;
 
 const
   C_BUILDER_CONFIG : TBuilderConfig = (
     isVerbose: true
   );
+  C_BUILD_DATE = '2024-09-21';
+  C_BUILD_TIME = '17:24';
 
 var 
   builder: PBuilder;

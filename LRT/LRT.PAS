@@ -1,11 +1,13 @@
 uses
-  ats, lcommon, lsystem, ltexts;
+  lcommon, lsystem, ltexts;
 
 var
   sys: PSystem;
 
 const
   isSilent = false;
+  C_BUILD_DATE = '2024-09-21';
+  C_BUILD_TIME = '17:24';
 
 var
   filename: string;
