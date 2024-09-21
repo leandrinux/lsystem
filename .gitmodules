@@ -1,0 +1,3 @@
+[submodule "leanlib"]
+	path = leanlib
+	url = git@github.com:leandrinux/leanlib.git
