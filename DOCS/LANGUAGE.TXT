@@ -1,0 +1,43 @@
+[decimal_number]
+[hex_number]
+[oct_number]
+[bin_number]
+[float_number]
+[char]
+[string]
+[identifier]
+[type_byte]
+[type_char]
+[type_word]
+[type_string]
+[type_long]
+
+[number]: [decimal_number] | [hex_number] | [oct_number] | [bin_number] | [float_number] | [char]
+[literal]: [number] | [string]
+[define]: [identifier] = [number]
+[define_block]: def [define], [define], ...
+[type_simple]: [type_byte] | [type_char] | [type_word] | [type_string] | [type_long]
+[type_array]: [type_simple][]
+[type]: [type_simple] | [type_array] 
+[uninit_variable] = [identifier] : [type]
+[init_variable] = [uninit_variable] = [literal]
+[variable]: [uninit_variable] | [init_variable]
+[variable_block]: var [variable], [variable], ...
+[data_section_block]: [define_block] | [variable_block]
+[data_section]: .data [data_section_block] [data_section_block] ...
+
+[zero_arg_opcode]: pusha, popa, ret, ...
+[one_arg_opcode]: push, pop, call, ...
+[two_args_opcode]: mov, add, sub, cmp, ...
+[arg_register]: eax, ax, ah, al, ebx, ...
+[arg_literal]: [number]
+[arg_address]: [[literal]]
+[arg_pointer]: [[register]+[literal]]
+[instruction_arg]: [arg_register] | [arg_literal] | [arg_address] | [arg_pointer]
+[zero_arg_instruction]: [zero_arg_opcode]
+[one_arg_instruction]: [one_arg_opcode] [instruction_arg]
+[two_args_instruction]: [two_args_opcode] [instruction_arg], [instruction_arg]
+[instruction]: [zero_arg_instruction] | [one_arg_instruction] | [two_args_instruction]
+[code_section]: .code [instruction] [instruction] ...
+
+[program]: [data_section] [code_section]
