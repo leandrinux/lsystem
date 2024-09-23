@@ -1,16 +1,8 @@
 uses
   lcmdline,
   ltexts,
-  lasmscp;
+  lasmscp,
+  ltokenzr;
 
-{
-  lcbase,
-  lliteral,
-  lbuilder,
-  lcparser,
-  ldparser,
-  lsrccode,
-  ltexts;
-}
 begin
 end.

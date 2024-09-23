@@ -53,7 +53,7 @@ implementation
     tokenizer: PTokenizer;
   begin
     tokenizer := new (PTokenizer, init);
-    tokenizer^.split(_source);
+    tokenizer^.next(_source);
     tokenizer^.release;
   end;
 

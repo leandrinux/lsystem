@@ -18,7 +18,7 @@ interface
     public
       constructor init;
       destructor done; virtual;
-      procedure split(stream: PStream);
+      function next(stream: PStream): string;
     private
     end;
 
@@ -28,7 +28,8 @@ implementation
 
   const
     C_EOLN_COMMENT_START = '#';
-    C_ALPHANUMERIC: set of char = ['a'..'z', 'A'..'Z', '0'..'9'];
+    C_DELIMITERS = [C_CR, C_LF, ' ', ','];
+    C_ACCEPTED_DELIMITERS = [','];
 
   constructor TTokenizer.init;
   begin
@@ -40,29 +41,33 @@ implementation
     inherited done;
   end;
 
-  procedure TTokenizer.split(stream: PStream);
+  function TTokenizer.next(stream: PStream): string;
   var
     ch: char;
     token: string;
+    isDone: boolean;
   begin
     token := '';
-    while stream^.read(@ch, 1) > 0 do
+    isDone := false;
+    while not isDone and (stream^.read(@ch, 1) > 0) do
     begin
-
       if ch = C_EOLN_COMMENT_START then 
       begin
         while (ch<>C_CR) do stream^.read(@ch, 1);
         if ch = C_LF then stream^.read(@ch, 1);
-      end else if ch in C_ALPHANUMERIC then
+      end else if ch in C_ACCEPTED_DELIMITERS then
       begin
+        next := token;
+        isDone := true;
+      end else if ch in C_DELIMITERS then
+      begin
+        next := token;
+        isDone := true;
+      end else begin
         token := token + ch;
-      end else if length(token) > 0 then 
-      begin
-        writeln(token);
-        token := '';
       end;
-
     end;
+    next := token;
   end;
 
   { TTokenizer private }
