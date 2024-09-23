@@ -1,4 +1,9 @@
 uses
+  lcmdline,
+  ltexts,
+  lasmscp;
+
+{
   lcbase,
   lliteral,
   lbuilder,
@@ -6,6 +11,6 @@ uses
   ldparser,
   lsrccode,
   ltexts;
-
+}
 begin
 end.
