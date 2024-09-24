@@ -29,7 +29,7 @@ implementation
   const
     C_EOLN_COMMENT_START = '#';
     C_DELIMITERS = [C_CR, C_LF, ' ', ','];
-    C_ACCEPTED_DELIMITERS = [','];
+    C_ACCEPTED_DELIMITERS = [',', ':'];
 
   constructor TTokenizer.init;
   begin
@@ -57,17 +57,25 @@ implementation
         if ch = C_LF then stream^.read(@ch, 1);
       end else if ch in C_ACCEPTED_DELIMITERS then
       begin
-        next := token;
+        if length(token)>0 then 
+        begin
+          next := token;
+          stream^.seek(stream^.getPosition - 1);
+        end else
+          next := ch;
         isDone := true;
       end else if ch in C_DELIMITERS then
       begin
-        next := token;
-        isDone := true;
+        if length(token)>0 then
+        begin
+          next := token;
+          isDone := true;
+        end;
       end else begin
         token := token + ch;
       end;
     end;
-    next := token;
+    if not isDone then next := '';
   end;
 
   { TTokenizer private }
