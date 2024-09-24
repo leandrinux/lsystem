@@ -21,6 +21,7 @@ interface
       procedure parse;
     private
       _source: PStream;
+      _tokenizer: PTokenizer;
     end;
 
 implementation
@@ -31,10 +32,12 @@ implementation
   begin
     inherited init;
     _source := nil;
+    _tokenizer := new(PTokenizer, init);
   end;
 
   destructor TAssemblyParser.done;
   begin
+    _tokenizer^.release;
     if (_source <> nil) then _source^.release;
     inherited done;
   end;
@@ -49,12 +52,8 @@ implementation
   end;
 
   procedure TAssemblyParser.parse;
-  var 
-    tokenizer: PTokenizer;
   begin
-    tokenizer := new (PTokenizer, init);
-    tokenizer^.next(_source);
-    tokenizer^.release;
+    _tokenizer^.next(_source);
   end;
 
   { TAssemblyParser private }
