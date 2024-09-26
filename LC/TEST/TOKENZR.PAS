@@ -7,17 +7,18 @@ function testfile(const sourceName: string): boolean;
 var
   fsSource, fsTokenized: PFileStream;
   tokenizer: PTokenizer;
-  token: string;
+  token: TToken;
+  success: boolean;
 begin
   fsSource := new (PFileStream, initWithPath('\examples\' + sourceName + '.asm', EFileReadOnly));
   fsTokenized := new (PFileStream, initWithPath('\examples\' + sourceName + '.tkn', EFileReadOnly));
   tokenizer := new (PTokenizer, init);
 
-  token := tokenizer^.next(fsSource);
-  while token <> '' do
+  success := tokenizer^.next(fsSource, token);
+  while success do
   begin
-    write(token, ' ');
-    token := tokenizer^.next(fsSource);
+    write('(', token.position, ', "', token.value, '") ');
+    success := tokenizer^.next(fsSource, token);
   end;
   tokenizer^.release;
   fsSource^.release;
@@ -25,5 +26,5 @@ begin
 end;
 
 begin
-  testFile('abc');
+  testFile('write');
 end.

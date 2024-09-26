@@ -52,8 +52,10 @@ implementation
   end;
 
   procedure TAssemblyParser.parse;
+  var 
+    token: TToken;
   begin
-    _tokenizer^.next(_source);
+    _tokenizer^.next(_source, token);
   end;
 
   { TAssemblyParser private }
