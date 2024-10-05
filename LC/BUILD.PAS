@@ -1,7 +1,7 @@
 uses
   lcmdline,
   ltexts,
-  lasmscp,
+  lparser,
   ltokenzr;
 
 begin

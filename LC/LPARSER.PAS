@@ -2,7 +2,7 @@
   Assembly source code parser unit
 }
 unit
-  lasmscp;
+  lparser;
 
 interface
 
@@ -52,10 +52,8 @@ implementation
   end;
 
   procedure TAssemblyParser.parse;
-  var 
-    token: TToken;
   begin
-    _tokenizer^.next(_source, token);
+    _tokenizer^.tokenize(_source);
   end;
 
   { TAssemblyParser private }

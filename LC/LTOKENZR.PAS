@@ -12,16 +12,10 @@ interface
     uobject, uexc, ustream, ulist;
 
   type
-    ETokenKind = (
-      ETokenKindUnknown
-    );
-
     PToken = ^TToken;
     TToken = object (TObject)
-      kind: ETokenKind;
       value: string;
       position: longint;
-      lineNumber: longint;
     end;
 
     PTokenizer = ^TTokenizer;
@@ -29,15 +23,14 @@ interface
     public
       constructor init;
       destructor done; virtual;
-      procedure addToken(token: PToken);
-      function getToken(index: longint): PToken;
-      function getTokenCount: longint;
+      function getTokens: PList;
       procedure tokenize(stream: PStream);
     private
       _stream: PStream;
       _tokens: PList;
       _lineNumber: longint;
-      function findToken: boolean;
+      procedure addToken(token: PToken);
+      function findNextToken: boolean;
     end;
 
 implementation
@@ -64,61 +57,66 @@ implementation
     inherited done;
   end;
 
-  procedure TTokenizer.addToken(token: PToken);
+  function TTokenizer.getTokens: PList;
   begin
-    _tokens^.addObject(token);
-  end;
-
-  function TTokenizer.getToken(index: longint): PToken;
-  begin
-    getToken := PToken(_tokens^.getObject(index));
-  end;
-
-  function TTokenizer.getTokenCount: longint;
-  begin
-    getTokenCount := _tokens.getCount;
+    getTokens := _tokens;
   end;
 
   procedure TTokenizer.tokenize(stream: PStream);
   begin
     _lineNumber := 1;
     _stream := stream;
-    while findToken do;
+    while findNextToken do;
   end;
 
-  function TTokenizer.findToken: boolean;
+  { TTokenizer private }
+
+  procedure TTokenizer.addToken(token: PToken);
+  begin
+    _tokens^.addObject(token);
+  end;
+
+  function TTokenizer.findNextToken: boolean;
   var
     ch: char;
     isDone: boolean;
+    token: PToken;
   begin
-    token.value := '';
-    token.position := stream^.getPosition;
+    token := new(PToken, init);
+    token^.position := _stream^.getPosition;
+    token^.value := '';
     isDone := false;
-    while not isDone and (stream^.read(@ch, 1) > 0) do
+    while not isDone and (_stream^.read(@ch, 1) > 0) do
     begin
       if ch = C_EOLN_COMMENT_START then 
       begin
-        while (ch<>C_CR) do stream^.read(@ch, 1);
-        if ch = C_LF then stream^.read(@ch, 1);
+        while (ch<>C_CR) do _stream^.read(@ch, 1);
+        if ch = C_LF then _stream^.read(@ch, 1);
+        token^.position := _stream^.getPosition;
       end else if ch in C_ACCEPTED_DELIMITERS then
       begin
-        if length(token.value)>0 then 
+        if length(token^.value)>0 then 
         begin
-          stream^.seek(stream^.getPosition - 1);
+          _stream^.seek(_stream^.getPosition - 1);
         end else
-          token.value := ch;
+        begin
+          token^.position := _stream^.getPosition;
+          token^.value := ch;
+        end;
         isDone := true;
       end else if ch in C_DELIMITERS then
       begin
-        if length(token.value)>0 then
+        if length(token^.value)>0 then
         begin
           isDone := true;
         end;
       end else begin
-        token.value := token.value + ch;
+        token^.value := token^.value + ch;
       end;
     end;
-    findToken := isDone;
+    if isDone then addToken(token);
+    token^.release;
+    findNextToken := isDone;
   end;
 
   { TTokenizer private }
