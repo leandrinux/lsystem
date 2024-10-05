@@ -35,11 +35,6 @@ interface
 
 implementation
 
-  const
-    C_EOLN_COMMENT_START = '#';
-    C_DELIMITERS = [C_CR, C_LF, ' ', ','];
-    C_ACCEPTED_DELIMITERS = [',', ':'];
-
   { TTokenizer public }
 
   constructor TTokenizer.init;
@@ -76,6 +71,86 @@ implementation
     _tokens^.addObject(token);
   end;
 
+  function TTokenizer.findNextToken: boolean;
+  type
+    EState = (
+      EStateStart,
+      EStateComment,
+      EStateString,
+      EStateEnd
+    );
+{
+    TString15 = string[15];
+  const
+    C_STATES : array[EState] of TString15 = (
+      'Start',
+      'Comment',
+      'String',
+      'End'
+    );
+}
+  var 
+    state: EState;
+    ch: char;
+    value: string;
+    token: PToken;
+  begin
+    findNextToken := false;
+    token := new(PToken, init);
+    token^.position := 0;
+    value := '';
+    state := EStateStart;
+
+    while (state<>EStateEnd) do
+    begin
+      if _stream^.read(@ch, 1) = 0 then state := EStateEnd;
+      { writeln('Char:', ch, ', state: ', C_STATES[EStateStart]); }
+      case state of
+        EStateStart: begin
+          if ch = '#' then state := EStateComment
+          else if ch = '''' then 
+          begin
+            value := value + ch;
+            state := EStateString;
+          end else if ch in [',', ':'] then
+          begin
+            if length(value)=0 then 
+              value := value + ch
+            else
+              _stream^.seek(_stream^.getPosition - 1);
+            state := EStateEnd;
+          end else if ch in [C_CR, C_LF, ' '] then
+          begin
+            if length(value)>0 then state := EStateEnd;
+          end else
+          begin
+            value := value + ch;
+          end;
+        end;
+
+        EStateComment: begin
+          if ch = C_LF then state := EStateStart;
+        end;
+
+        EStateString: begin
+          value := value + ch;
+          if ch = '''' then state := EStateEnd;
+        end;
+
+      end;
+    end;
+
+    if value <> '' then
+    begin
+      { writeln(value); }
+      token^.value := value;
+      addToken(token);
+      findNextToken := true;
+    end;
+    token^.release;
+  end;
+
+{
   function TTokenizer.findNextToken: boolean;
   var
     ch: char;
@@ -118,6 +193,7 @@ implementation
     token^.release;
     findNextToken := isDone;
   end;
+}
 
   { TTokenizer private }
 

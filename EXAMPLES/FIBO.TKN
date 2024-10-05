@@ -187,8 +187,7 @@ write_uint32
 out
 1
 ,
-'
-'
+' '
 out
 1
 ,
@@ -196,8 +195,7 @@ out
 out
 1
 ,
-'
-'
+' '
 pop
 eax
 ret
