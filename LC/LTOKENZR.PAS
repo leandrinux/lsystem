@@ -30,7 +30,7 @@ interface
       _tokens: PList;
       _lineNumber: longint;
       procedure addToken(token: PToken);
-      function findNextToken: boolean;
+      function createNextToken: PToken;
     end;
 
 implementation
@@ -58,10 +58,18 @@ implementation
   end;
 
   procedure TTokenizer.tokenize(stream: PStream);
+  var
+    token: PToken;
   begin
     _lineNumber := 1;
     _stream := stream;
-    while findNextToken do;
+    token := createNextToken;
+    while token<>nil do 
+    begin
+      addToken(token);
+      token^.release;
+      token := createNextToken;
+    end;    
   end;
 
   { TTokenizer private }
@@ -71,7 +79,7 @@ implementation
     _tokens^.addObject(token);
   end;
 
-  function TTokenizer.findNextToken: boolean;
+  function TTokenizer.createNextToken: PToken;
   type
     EState = (
       EStateStart,
@@ -95,7 +103,6 @@ implementation
     value: string;
     token: PToken;
   begin
-    findNextToken := false;
     token := new(PToken, init);
     token^.position := 0;
     value := '';
@@ -144,10 +151,10 @@ implementation
     begin
       { writeln(value); }
       token^.value := value;
-      addToken(token);
-      findNextToken := true;
-    end;
-    token^.release;
+      createNextToken := token;
+    end else
+      createNextToken := nil;
+
   end;
 
 {

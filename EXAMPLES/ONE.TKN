@@ -1,0 +1,14 @@
+.code
+xor
+ah
+,
+ah
+,
+loop
+:
+add
+ah
+,
+1
+jmp
+loop

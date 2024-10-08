@@ -38,5 +38,5 @@ begin
 end;
 
 begin
-  testFile('fibo');
+  testFile('one');
 end.
