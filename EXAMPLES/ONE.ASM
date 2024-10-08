@@ -3,7 +3,7 @@
 
 .code
 
-  xor ah, ah,
+  xor ah, ah
 loop: 
   add ah, 1
   jmp loop

@@ -83,11 +83,45 @@ implementation
       code, argCount: byte;
     begin
       parseSentence := false;
+      if lookAhead = ':' then
+      begin
+        next;
+        next;
+      end;
       success := getOpcodeInfoByName(token, code, argCount);
+
       if success then
       begin
         next;
-        parseSentence := true;
+        case argCount of
+          0: parseSentence := true;
+          1: begin
+            if getParameterType(token) <> EParameterTypeUnknown then 
+            begin
+              next;
+              parseSentence := true;
+            end else
+              writeln('expected first argument');
+          end;
+          2: begin
+            if getParameterType(token) <> EParameterTypeUnknown then 
+            begin
+              next;
+              if token = ',' then
+              begin
+                next;
+                if getParameterType(token) <> EParameterTypeUnknown then 
+                begin
+                  next;
+                  parseSentence := true;
+                end else
+                  writeln('expected second argument');
+              end else
+                writeln('expected ,');
+            end else
+              writeln('expected first argument');
+          end;
+        end;
       end;
     end;
 
