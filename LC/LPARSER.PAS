@@ -135,16 +135,45 @@ implementation
         writeln('valid code header block');
         next;
         count := 0;
-        while parseSentence do inc(count);
+        while parseSentence do 
+        begin
+          writeln('valid sentence');
+          inc(count);
+        end;
         writeln('sentence count is ', count);
         parseCodeBlock := count > 0
       end;
     end;
 
+    function parseDataBlock: boolean;
+    begin
+      parseDataBlock := false;
+      if token = '.code' then
+        writeln('valid code header block, skipping data');
+        parseDataBlock := true
+      else begin
+        if token = '.data' then
+        begin
+          writeln('valid data header block');
+          parseDataBlock := true;
+          next;
+          { parse lets and vars }
+        end
+      end;
+    end;
+
+    function parseProgram: boolean;
+    begin
+      parseProgram := parseDataBlock and parseCodeBlock;
+    end;
+
   begin
     tokenize;
     writeln('Parsing...');
-    if parseCodeBlock then writeln('parsed ok') else writeln('parse error');
+    if parseProgram then 
+      writeln('success') 
+    else 
+      writeln('error');
   end;
 
   { TAssemblyParser private }
