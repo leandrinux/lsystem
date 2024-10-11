@@ -1,6 +1,6 @@
 .data
 
-def count=10
+let count = 10
 
 .code
 

@@ -9,7 +9,7 @@ interface
   uses
     consts, utils, uclasses, types, locale,
     uobject, uexc, ustream, ufstream, ulist, ustring,
-    lcbase, ltokenzr;
+    lcommon, lliteral, lcbase, ltokenzr;
 
   type
     PAssemblyParser = ^TAssemblyParser;
@@ -145,24 +145,60 @@ implementation
       end;
     end;
 
-    function parseDataBlock: boolean;
+    function parseDefinitionItem: boolean;
+    var
+      value: TUInt32;
     begin
-      parseDataBlock := false;
-      if token = '.code' then
-        writeln('valid code header block, skipping data');
-        parseDataBlock := true
-      else begin
-        if token = '.data' then
-        begin
-          writeln('valid data header block');
-          parseDataBlock := true;
-          next;
-          { parse lets and vars }
-        end
-      end;
+      parseDefinitionItem := false;
+      if not isValidIdentifier(token) then exit;
+      next;
+      if token <> '=' then exit;
+      next;
+      parseDefinitionItem := any2int(token, value);
     end;
 
-    function parseProgram: boolean;
+    function parseDefinition: boolean;
+    begin
+      parseDefinition := false;
+      if token <> 'def' then exit;
+      parseDefinitionItem;
+      while lookAhead = ',' do
+      begin
+        next; 
+        parseDefinitionItem;
+      end;
+      parseDefinition := true;    
+    end;
+
+    function parseVariable: boolean;
+    begin
+      parseVariable := false;
+    end;
+
+    function parseDeclaration: boolean;      
+    begin
+      parseDeclaration := false;
+      while parseDefinition or parseVariable do parseDeclaration := true;
+    end;
+
+    function parseDataBlock: boolean;
+    begin
+      if token = '.code' then
+      begin
+        writeln('valid code header block, skipping data');
+        parseDataBlock := true;
+        exit;
+      end;
+
+      parseDataBlock := false;
+      if token <> '.data' then exit;
+      next;
+      writeln('valid data header block');
+      while parseDeclaration do;
+      parseDataBlock := true;
+    end;
+
+    function parseProgram: boolean;  
     begin
       parseProgram := parseDataBlock and parseCodeBlock;
     end;

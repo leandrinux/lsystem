@@ -14,5 +14,5 @@ begin
 end;
 
 begin
-  testFile('hellow');
+  testFile('full');
 end.

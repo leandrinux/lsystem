@@ -143,7 +143,12 @@ interface
 
   function getOpcodeInfoByName(const name: TInstructionName; var code, count: byte): boolean;
   function getRegisterInfoByName(const name:TRegisterName; var code, bitSize: byte): boolean;
-  function getParameterType(const token: string): EParameterType;
+  function isValidRegister(const str: string): boolean;
+  function isValidIdentifier(const str: string): boolean;
+  function isValidOpcode(const value: string): boolean;
+  function getParameterType(const str: string): EParameterType;
+  function getLiteralBitSize(const param: string): byte;
+  function getRegisterBitSize(const param: string): byte;
   function getBitSize(const param: string; paramType:EParameterType): byte;
 
 implementation
@@ -174,27 +179,38 @@ implementation
     getRegisterInfoByName := true;
   end;
 
-  function isValidRegister(const token: string): boolean;
+  function isValidRegister(const str: string): boolean;
   var
     i: byte;
   begin
     i := 0;
-    while (i<C_REGISTER_COUNT) and (C_REGISTER_INFO[i].name<>token) do inc(i);
+    while (i<C_REGISTER_COUNT) and (C_REGISTER_INFO[i].name<>str) do inc(i);
     isValidRegister := i<C_REGISTER_COUNT;
   end;
 
-  function isValidSymbol(const token: string): boolean;
+  function isValidIdentifier(const str: string): boolean;
   const
-    C_VALID_TOKEN_CHARS = ['A'..'Z','a'..'z','_'];
+    C_VALID_IDENTIFIER_CHARS = ['A'..'Z','a'..'z','_'];
+  var
+    i: byte;
+    ruleCompliant: boolean;
+  begin
+    i := 1;
+    while (i<=length(str)) and (str[i] in C_VALID_IDENTIFIER_CHARS) do inc(i);
+    ruleCompliant := i>length(str);
+    isValidIdentifier := ruleCompliant and (not isValidOpcode(str)) and (not isValidRegister(str));
+  end;
+
+  function isValidOpcode(const value: string): boolean;
   var
     i: byte;
   begin
-    i := 1;
-    while (i<=length(token)) and (token[i] in C_VALID_TOKEN_CHARS) do inc(i);
-    isValidSymbol := i>length(token);
+    i := 0;
+    while (i<C_OPCODE_COUNT) and (C_OPCODE_INFO[i].name<>value) do inc(i); 
+    isValidOpcode := i < C_OPCODE_COUNT;
   end;
 
-  function getParameterType(const token: string): EParameterType;
+  function getParameterType(const str: string): EParameterType;
   const
     C_SET_LITERALS: set of char = ['+', '-', '0'..'9', '$', '#', ''''];
   var 
@@ -208,28 +224,28 @@ implementation
       pointer = [AX+2], [EDX-5], [DS]
     *)
     getParameterType := EParameterTypeUnknown;
-    if length(token)<1 then exit;
-    if token[1] in C_SET_LITERALS then
+    if length(str)<1 then exit;
+    if str[1] in C_SET_LITERALS then
       getParameterType := EParameterTypeLiteral
-    else if token[1] = '[' then
+    else if str[1] = '[' then
     begin
-      if length(token)<3 then exit;
-      if token[2] in C_SET_LITERALS then
+      if length(str)<3 then exit;
+      if str[2] in C_SET_LITERALS then
         getParameterType := EParameterTypeAddress
       else begin
-        i := pos('+', token);
-        if i=0 then i := pos('-', token);
-        j := pos(']', token);
+        i := pos('+', str);
+        if i=0 then i := pos('-', str);
+        j := pos(']', str);
         if i=0 then
-          reg := copy(token, 2, length(token)-2)
+          reg := copy(str, 2, length(str)-2)
         else
-          reg := copy(token, 2, i-2);
+          reg := copy(str, 2, i-2);
         if isValidRegister(reg) and (j<>0) and (j>i) then 
           getParameterType := EParameterTypePointer
-        else if isValidSymbol(token) then
+        else if isValidIdentifier(str) then
           getParameterType := EParameterTypeSymbol;
       end;
-    end else if isValidRegister(token) then
+    end else if isValidRegister(str) then
       getParameterType := EParameterTypeRegister
     else
       getParameterType := EParameterTypeSymbol;    

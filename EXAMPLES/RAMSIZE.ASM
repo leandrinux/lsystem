@@ -2,8 +2,7 @@
 
 .data
   
-  def RAM_DEVICE = 0
-  def ECHO_DEVICE = 1 
+  def RAM_DEVICE = 0, ECHO_DEVICE = 1 
   def CMD_GET_SIZE = 1 
 
 .code
