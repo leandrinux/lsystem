@@ -140,8 +140,13 @@ implementation
         end;
 
         EStateString: begin
-          value := value + ch;
-          if ch = '''' then state := EStateEnd;
+          if ch in [C_CR, C_LF] then 
+            state := EStateEnd
+          else
+          begin
+            value := value + ch;
+            if ch = '''' then state := EStateEnd;
+          end;
         end;
 
       end;

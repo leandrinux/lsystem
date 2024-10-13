@@ -8,7 +8,7 @@
     OTHER_DEVICE = 0x02
 
   var 
-    text: char = 'Hello World\0'
+    text: char = 'Hello World\0
 
   var 
     tiny: byte,                # this will be initialized as zero

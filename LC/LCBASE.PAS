@@ -216,7 +216,7 @@ implementation
     i: byte;
   begin
     i := 0;
-    while (str <> C_TYPES[i]) do inc(i);
+    while (str <> C_TYPES[i]) and (i<C_TYPES_COUNT) do inc(i);
     isValidVariableType := i < C_TYPES_COUNT;
   end;
 

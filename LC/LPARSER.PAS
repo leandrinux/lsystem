@@ -73,7 +73,7 @@ implementation
       if t<>nil then 
       begin
         token := t^.value;
-        writeln(t^.value);
+        { writeln(t^.value); }
       end else token := '';
     end;
 
@@ -224,12 +224,12 @@ implementation
       if token = '=' then
       begin
         next;
-        if isValidLiteral(token) then
+        if not isValidLiteral(token) then
         begin
-          next;
-        end else begin
           writeln('expected a literal, got ', token, ' ');
           exit;
+        end else begin
+          next;
         end;
       end;
 
