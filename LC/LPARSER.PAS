@@ -132,24 +132,18 @@ implementation
       end;
     end;
 
-    function parseCodeBlock: boolean;
+    function parseCodeBlock: EParseResult;
     var
       count: longint;
     begin
-      parseCodeBlock := false;
-      if token = '.code' then
-      begin
-        writeln('valid code header block');
-        next;
-        count := 0;
-        while parseSentence do 
-        begin
-          writeln('valid sentence');
-          inc(count);
-        end;
-        writeln('sentence count is ', count);
-        parseCodeBlock := count > 0
-      end;
+      parseCodeBlock := EParseUnsuccessful;
+      count := 0;
+      while parseSentence do inc(count);
+      writeln('sentence count is ', count);
+      if count > 0 then 
+        parseCodeBlock := EParseSuccessful 
+      else 
+        parseCodeBlock := EParseUnsuccessful;
     end;
 
     function parseDefinitionItem: EParseResult;
@@ -232,7 +226,6 @@ implementation
           next;
         end;
       end;
-
       parseVariableItem := EParseSuccessful;
     end;
 
@@ -255,45 +248,87 @@ implementation
       parseVariableDeclaration := EParseSuccessful;
     end;
 
-    function parseDeclaration: boolean;      
+    function parseDeclaration: EParseResult;
+    var
+      result: EParseResult;
+      count: byte;
     begin
-      parseDeclaration := false;
-      while 
-        (parseDefinitionDeclaration = EParseSuccessful) or 
-        (parseVariableDeclaration = EParseSuccessful)
-      do
-        parseDeclaration := true;
+      count := 0;
+      repeat
+        result := parseDefinitionDeclaration;
+        if result = EParseFatalError then
+        begin
+          writeln('error in data block declaration');
+          exit;
+        end;
+        if result = EParseUnsuccessful then
+        begin
+          result := parseVariableDeclaration;
+          if result = EParseFatalError then
+          begin
+            writeln('error in data block declaration');
+            exit;
+          end;          
+        end;
+        if result = EParseSuccessful then inc(count);
+      until result = EParseUnsuccessful;
+      if count>0 then
+        parseDeclaration := EParseSuccessful
+      else  
+        parseDeclaration := EParseUnsuccessful;
     end;
 
-    function parseDataBlock: boolean;
+    function parseDataBlock: EParseResult;
     begin
-      if token = '.code' then
+      while parseDeclaration = EParseSuccessful do;
+      if parseDeclaration = EParseFatalError then
       begin
-        writeln('valid code header block, skipping data');
-        parseDataBlock := true;
+        writeln('error in data block');
+        parseDataBlock := EParseFatalError;
+      end else 
+        parseDataBlock := EParseSuccessful;
+    end;
+
+    function parseProgram: EParseResult;  
+    var 
+      result: EParseResult;
+    begin
+      if token = '.data' then
+      begin
+        next;
+        result := parseDataBlock;
+        if result = EParseSuccessful then writeln('data section parsed ok');
+      end else
+        result := EParseSuccessful;
+
+      if result = EParseFatalError then
+      begin
+        writeln('data block error');
         exit;
       end;
 
-      parseDataBlock := false;
-      if token <> '.data' then exit;
-      next;
-      writeln('valid data header block');
-      while parseDeclaration do;
-      parseDataBlock := true;
-    end;
+      if token = '.code' then
+      begin
+        next;
+        result := parseCodeBlock;
+        if result = EParseSuccessful then writeln('code block ok');
+        if result = EParseUnsuccessful then writeln('code block fail');
+      end else
+      begin
+        writeln('expected .code, got ''', token, '''');
+        result := EParseFatalError;
+      end;
 
-    function parseProgram: boolean;  
-    begin
-      parseProgram := parseDataBlock and parseCodeBlock;
+      parseProgram := result;
     end;
 
   begin
     tokenize;
     writeln('Parsing...');
-    if parseProgram then 
-      writeln('success') 
+    if parseProgram = EParseSuccessful then 
+      writeln('parse success') 
     else 
-      writeln('error');
+      writeln('parse error');
   end;
 
   { TAssemblyParser private }
