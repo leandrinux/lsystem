@@ -54,6 +54,13 @@ implementation
 
   procedure TAssemblyParser.parse;
 
+  type
+    EParseResult = (
+      EParseSuccessful,
+      EParseUnsuccessful,
+      EParseFatalError
+    );
+
     procedure next;
     begin
       _tokens^.moveForward;
@@ -145,28 +152,49 @@ implementation
       end;
     end;
 
-    function parseDefinitionItem: boolean;
+    function parseDefinitionItem: EParseResult;
     var
       value: TUInt32;
     begin
-      parseDefinitionItem := false;
-      if not isValidIdentifier(token) then exit;
+      if not isValidIdentifier(token) then 
+      begin
+        writeln('expected valid identifier, got "', token , '"');
+        parseDefinitionItem := EParseFatalError;
+        exit;
+      end;
       next;
-      if token <> '=' then exit;
+      if token <> '=' then
+      begin
+        writeln('expected = after definition identifier, got ', token);
+        parseDefinitionItem := EParseFatalError;
+        exit;
+      end;
       next;
-      parseDefinitionItem := any2int(token, value);
+      if not any2int(token, value) then
+      begin
+        writeln('expected a numeric literal, got ', token, ' ');
+        parseDefinitionItem := EParseFatalError;
+        exit;
+      end;
+      next;
+      parseDefinitionItem := EParseSuccessful;
     end;
 
     function parseDefinition: boolean;
+    var 
+      result: EParseResult;
     begin
       parseDefinition := false;
       if token <> 'def' then exit;
-      parseDefinitionItem;
-      while lookAhead = ',' do
-      begin
-        next; 
-        parseDefinitionItem;
-      end;
+      repeat
+        next;
+        result := parseDefinitionItem;
+        if result = EParseFatalError then
+        begin
+          parseDefinition := false;
+          exit;
+        end;      
+      until token <> ',';
       parseDefinition := true;    
     end;
 
