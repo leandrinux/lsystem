@@ -4,15 +4,16 @@
 .data
 
   def 
-    DEVICE = 0x01
+    OUTPUT_DEVICE = 0x01,
+    OTHER_DEVICE = 0x02
 
-#  var 
-#    text: char = 'Hello World\0'
+  var 
+    text: char = 'Hello World\0'
 
-#  var 
-#    tiny: byte,                # this will be initialized as zero
-#    medium: word = $FAFA,      # this will require bitsize verification
-#    large: long = $CAFECAFE
+  var 
+    tiny: byte,                # this will be initialized as zero
+    medium: word = $FAFA,      # this will require bitsize verification
+    large: long = $CAFECAFE
 
 .code
 

@@ -145,6 +145,9 @@ interface
   function getRegisterInfoByName(const name:TRegisterName; var code, bitSize: byte): boolean;
   function isValidRegister(const str: string): boolean;
   function isValidIdentifier(const str: string): boolean;
+  function isValidVariableType(const str: string): boolean;
+  function isValidNumericLiteral(const str: string): boolean;
+  function isValidLiteral(const str: string): boolean;
   function isValidOpcode(const value: string): boolean;
   function getParameterType(const str: string): EParameterType;
   function getLiteralBitSize(const param: string): byte;
@@ -199,6 +202,36 @@ implementation
     while (i<=length(str)) and (str[i] in C_VALID_IDENTIFIER_CHARS) do inc(i);
     ruleCompliant := i>length(str);
     isValidIdentifier := ruleCompliant and (not isValidOpcode(str)) and (not isValidRegister(str));
+  end;
+
+  function isValidVariableType(const str: string): boolean;
+  type 
+    TString6 = string[6];
+  const 
+    C_TYPES_COUNT = 5;
+    C_TYPES : array [0..C_TYPES_COUNT-1] of TString6 = (
+      'byte', 'word', 'long', 'char', 'string'
+    );
+  var
+    i: byte;
+  begin
+    i := 0;
+    while (str <> C_TYPES[i]) do inc(i);
+    isValidVariableType := i < C_TYPES_COUNT;
+  end;
+
+  function isValidNumericLiteral(const str: string): boolean;
+  var
+    value: TUInt32;
+  begin
+    isValidNumericLiteral := any2int(str, value);
+  end;
+
+  function isValidLiteral(const str: string): boolean;
+  begin
+    isValidLiteral := 
+      ( (str[1] = '''') and (str[length(str)]='''') ) or
+      isValidNumericLiteral(str);
   end;
 
   function isValidOpcode(const value: string): boolean;

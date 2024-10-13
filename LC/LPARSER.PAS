@@ -153,8 +153,6 @@ implementation
     end;
 
     function parseDefinitionItem: EParseResult;
-    var
-      value: TUInt32;
     begin
       if not isValidIdentifier(token) then 
       begin
@@ -170,7 +168,7 @@ implementation
         exit;
       end;
       next;
-      if not any2int(token, value) then
+      if not isValidNumericLiteral(token) then
       begin
         writeln('expected a numeric literal, got ', token, ' ');
         parseDefinitionItem := EParseFatalError;
@@ -180,33 +178,91 @@ implementation
       parseDefinitionItem := EParseSuccessful;
     end;
 
-    function parseDefinition: boolean;
-    var 
-      result: EParseResult;
+    function parseDefinitionDeclaration: EParseResult;
     begin
-      parseDefinition := false;
-      if token <> 'def' then exit;
+      if token <> 'def' then 
+      begin
+        parseDefinitionDeclaration := EParseUnsuccessful;
+        exit;
+      end;
       repeat
         next;
-        result := parseDefinitionItem;
-        if result = EParseFatalError then
+        if parseDefinitionItem = EParseFatalError then
         begin
-          parseDefinition := false;
+          writeln('fatal error on data definition declaration');
+          parseDefinitionDeclaration := EParseFatalError;
           exit;
         end;      
       until token <> ',';
-      parseDefinition := true;    
+      parseDefinitionDeclaration := EParseSuccessful;
     end;
 
-    function parseVariable: boolean;
+    function parseVariableItem: EParseResult;
     begin
-      parseVariable := false;
+      if not isValidIdentifier(token) then 
+      begin
+        writeln('expected valid identifier, got "', token , '"');
+        parseVariableItem := EParseFatalError;
+        exit;
+      end;
+      next;
+      if token <> ':' then
+      begin
+        writeln('expected : after variable identifier, got ', token);
+        parseVariableItem := EParseFatalError;
+        exit;
+      end;
+      next;
+      if not isValidVariableType(token) then 
+      begin
+        writeln('expected valid variable type, got "', token , '"');
+        parseVariableItem := EParseFatalError;
+        exit;
+      end;
+      next;
+
+      if token = '=' then
+      begin
+        next;
+        if isValidLiteral(token) then
+        begin
+          next;
+        end else begin
+          writeln('expected a literal, got ', token, ' ');
+          exit;
+        end;
+      end;
+
+      parseVariableItem := EParseSuccessful;
+    end;
+
+    function parseVariableDeclaration: EParseResult;
+    begin
+      if token <> 'var' then 
+      begin
+        parseVariableDeclaration := EParseUnsuccessful;
+        exit;
+      end;
+      repeat
+        next;
+        if parseVariableItem = EParseFatalError then
+        begin
+          writeln('fatal error on data variable declaration');
+          parseVariableDeclaration := EParseFatalError;
+          exit;
+        end;      
+      until token <> ',';
+      parseVariableDeclaration := EParseSuccessful;
     end;
 
     function parseDeclaration: boolean;      
     begin
       parseDeclaration := false;
-      while parseDefinition or parseVariable do parseDeclaration := true;
+      while 
+        (parseDefinitionDeclaration = EParseSuccessful) or 
+        (parseVariableDeclaration = EParseSuccessful)
+      do
+        parseDeclaration := true;
     end;
 
     function parseDataBlock: boolean;
