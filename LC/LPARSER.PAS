@@ -9,7 +9,7 @@ interface
   uses
     consts, utils, uclasses, types, locale,
     uobject, uexc, ustream, ufstream, ulist, ustring,
-    lcommon, lliteral, lcbase, ltokenzr, llang, lbingen;
+    lcommon, lliteral, lcbase, ltokenzr, llang, lbingen, lbindata;
 
   type
     PAssemblyParser = ^TAssemblyParser;
@@ -18,9 +18,11 @@ interface
       constructor init;
       destructor done; virtual;
       procedure setSourceFile(const path: string);
+      procedure setTargetFile(const path: string);
       procedure parse;
     private
       _source: PStream;
+      _target: PStream;
     end;
 
 implementation
@@ -31,11 +33,13 @@ implementation
   begin
     inherited init;
     _source := nil;
+    _target := nil;
   end;
 
   destructor TAssemblyParser.done;
   begin
     if (_source <> nil) then _source^.release;
+    if (_target <> nil) then _target^.release;
     inherited done;
   end;
 
@@ -48,12 +52,22 @@ implementation
     _source := fs;
   end;
 
+  procedure TAssemblyParser.setTargetFile(const path: string);
+  var 
+    fs: PFileStream;
+  begin
+    fs := new(PFileStream, initWithPath(path, EFileCreate));
+    if (_target <> nil) then _target^.release;
+    _target := fs;
+  end;
+
   procedure TAssemblyParser.parse;
   var
     tokenizer: PTokenizer;
-    binaryGenerator: PBinaryGenerator;
     tokens: PList;
     language: PLanguage;
+    binaryData: PBinaryData;
+    binaryGenerator: PBinaryGenerator;
   begin
     writeln('Tokenizing...');
     tokenizer := new(PTokenizer, init);
@@ -61,16 +75,21 @@ implementation
     tokens := tokenizer^.getTokens;
     writeln('Got ', tokens^.getCount ,' tokens.');
 
-    binaryGenerator := new (PBinaryGenerator, init);
-    language := new (PLanguage, init);
-    language^.setDelegate(binaryGenerator);
+    binaryData := new (PBinaryData, init);
+    language := new (PLanguage, initWithTokens(tokens, binaryData));
     writeln('Parsing...');
-    if language^.parseProgram(tokens) = EParseSuccessful then 
-      writeln('parse success') 
-    else 
+    if language^.parseProgram <> EParseSuccessful then 
+    begin
       writeln('parse error');
+      exit;
+    end;
 
+    writeln('Building binary...');
+    binaryGenerator := new (PBinaryGenerator, initWithBinaryData(binaryData));
+    binaryGenerator^.make(_target);
     binaryGenerator^.release;
+
+    binaryData^.release;
     language^.release;
     tokenizer^.release;
   end;

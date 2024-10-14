@@ -9,6 +9,7 @@ var
 begin
   parser := new (PAssemblyParser, init);
   parser^.setSourceFile('\examples\' + sourceName + '.asm');
+  parser^.setTargetFile('\examples\' + sourceName + '.bin');
   parser^.parse;
   parser^.release;
 end;

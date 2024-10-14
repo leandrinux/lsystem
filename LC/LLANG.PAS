@@ -9,7 +9,7 @@ interface
   uses
     consts, utils, uclasses, types, locale,
     uobject, uexc, ulist,
-    ltokenzr, lcbase;
+    ltokenzr, lcbase, lbindata;
 
   type
     EParseResult = (
@@ -21,11 +21,12 @@ interface
     PLanguage = ^TLanguage;
     TLanguage = object (TObject)
     public
-      constructor init;
+      constructor initWithTokens(tokens: PList; binaryData: PBinaryData);
       destructor done; virtual;
-      function parseProgram(tokens: PList): EParseResult;  
+      function parseProgram: EParseResult;  
     private
       _tokens: PList;
+      _binaryData: PBinaryData;
       procedure next;
       function token: string;
       function lookAhead: string;
@@ -43,27 +44,28 @@ implementation
 
   { TLanguage public }
 
-  constructor TLanguage.init;
+  constructor TLanguage.initWithTokens(tokens: PList; binaryData: PBinaryData);
   begin
     inherited init;
-    _tokens := nil;
+    _tokens := tokens;
+    _tokens^.retain;
+    _tokens^.moveToStart;
+
+    _binaryData := binaryData;
+    _binaryData^.retain;
   end;
 
   destructor TLanguage.done;
   begin
-    if _tokens <> nil then _tokens^.release;
+    _tokens^.release;
+    _binaryData^.release;
     inherited done;
   end;
 
-  function TLanguage.parseProgram(tokens: PList): EParseResult;  
+  function TLanguage.parseProgram: EParseResult;  
   var 
     result: EParseResult;
-  begin
-    if _tokens <> nil then _tokens^.release;
-    _tokens := tokens;
-    _tokens^.retain;
-    _tokens^.moveToStart;
-    
+  begin    
     if token = '.data' then
     begin
       next;

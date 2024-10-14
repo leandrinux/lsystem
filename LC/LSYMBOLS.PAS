@@ -11,17 +11,12 @@ interface
     uobject, uexc, ulist, ltexts,
     lcommon, lcbase;
 
-  const
-    C_CLASS_ID_SYMBOLS = $F013;
-
   type
     PSymbols = ^TSymbols;
     TSymbols = object (TObject)
     public
       constructor init;
       destructor done; virtual;
-      function getClassName: string; virtual;
-      function getClassId: word; virtual;
       procedure addValue(const name: TString30; value: TUInt32);
       procedure addUnknownValue(const name: TString30; reference: PUInt32);
       function getValue(const name: TString30; var value: TUInt32): boolean;
@@ -55,16 +50,6 @@ implementation
     _known^.release;
     _unknown^.release;
     inherited done;
-  end;
-
-  function TSymbols.getClassName: string;
-  begin
-    getClassName := 'TSymbols';
-  end;
-
-  function TSymbols.getClassId: word;
-  begin
-    getClassId := C_CLASS_ID_SYMBOLS;
   end;
 
   procedure TSymbols.addValue(const name: TString30; value: TUInt32);
