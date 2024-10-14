@@ -53,7 +53,6 @@ implementation
   end;
 
   procedure TAssemblyParser.parse;
-
   type
     EParseResult = (
       EParseSuccessful,
@@ -84,16 +83,15 @@ implementation
       if t<>nil then lookAhead := t^.value else lookAhead := '';
     end;
 
-    function parseSentence: boolean;
+    function parseSentence: EParseResult;
     var
       success: boolean;
       code, argCount: byte;
     begin
-      parseSentence := false;
+      parseSentence := EParseUnsuccessful;
       if lookAhead = ':' then
       begin
-        next;
-        next;
+        next; next;
       end;
       success := getOpcodeInfoByName(token, code, argCount);
 
@@ -101,12 +99,12 @@ implementation
       begin
         next;
         case argCount of
-          0: parseSentence := true;
+          0: parseSentence := EParseSuccessful;
           1: begin
             if getParameterType(token) <> EParameterTypeUnknown then 
             begin
               next;
-              parseSentence := true;
+              parseSentence := EParseSuccessful;
             end else
               writeln('expected first argument');
           end;
@@ -120,13 +118,19 @@ implementation
                 if getParameterType(token) <> EParameterTypeUnknown then 
                 begin
                   next;
-                  parseSentence := true;
-                end else
+                  parseSentence := EParseSuccessful;
+                end else begin
                   writeln('expected second argument');
-              end else
+                  parseSentence := EParseFatalError;
+                end;
+              end else begin
                 writeln('expected ,');
-            end else
+                parseSentence := EParseFatalError;
+              end;
+            end else begin
               writeln('expected first argument');
+              parseSentence := EParseFatalError;
+            end;
           end;
         end;
       end;
@@ -138,12 +142,17 @@ implementation
     begin
       parseCodeBlock := EParseUnsuccessful;
       count := 0;
-      while parseSentence do inc(count);
+      while parseSentence = EParseSuccessful do inc(count);
       writeln('sentence count is ', count);
-      if count > 0 then 
-        parseCodeBlock := EParseSuccessful 
-      else 
-        parseCodeBlock := EParseUnsuccessful;
+      if parseSentence = EParseFatalError then
+      begin
+        writeln('code block parse error');
+        parseCodeBlock := EParseFatalError;
+      end else 
+        if count > 0 then 
+          parseCodeBlock := EParseSuccessful 
+        else 
+          parseCodeBlock := EParseUnsuccessful;
     end;
 
     function parseDefinitionItem: EParseResult;
