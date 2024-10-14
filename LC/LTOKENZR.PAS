@@ -87,16 +87,6 @@ implementation
       EStateString,
       EStateEnd
     );
-{
-    TString15 = string[15];
-  const
-    C_STATES : array[EState] of TString15 = (
-      'Start',
-      'Comment',
-      'String',
-      'End'
-    );
-}
   var 
     state: EState;
     ch: char;
@@ -111,7 +101,6 @@ implementation
     while (state<>EStateEnd) do
     begin
       if _stream^.read(@ch, 1) = 0 then state := EStateEnd;
-      { writeln('Char:', ch, ', state: ', C_STATES[EStateStart]); }
       case state of
         EStateStart: begin
           if ch = '#' then state := EStateComment
@@ -154,58 +143,12 @@ implementation
 
     if value <> '' then
     begin
-      { writeln(value); }
       token^.value := value;
       createNextToken := token;
     end else
       createNextToken := nil;
 
   end;
-
-{
-  function TTokenizer.findNextToken: boolean;
-  var
-    ch: char;
-    isDone: boolean;
-    token: PToken;
-  begin
-    token := new(PToken, init);
-    token^.position := _stream^.getPosition;
-    token^.value := '';
-    isDone := false;
-    while not isDone and (_stream^.read(@ch, 1) > 0) do
-    begin
-      if ch = C_EOLN_COMMENT_START then 
-      begin
-        while (ch<>C_CR) do _stream^.read(@ch, 1);
-        if ch = C_LF then _stream^.read(@ch, 1);
-        token^.position := _stream^.getPosition;
-      end else if ch in C_ACCEPTED_DELIMITERS then
-      begin
-        if length(token^.value)>0 then 
-        begin
-          _stream^.seek(_stream^.getPosition - 1);
-        end else
-        begin
-          token^.position := _stream^.getPosition;
-          token^.value := ch;
-        end;
-        isDone := true;
-      end else if ch in C_DELIMITERS then
-      begin
-        if length(token^.value)>0 then
-        begin
-          isDone := true;
-        end;
-      end else begin
-        token^.value := token^.value + ch;
-      end;
-    end;
-    if isDone then addToken(token);
-    token^.release;
-    findNextToken := isDone;
-  end;
-}
 
   { TTokenizer private }
 

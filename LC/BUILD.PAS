@@ -4,7 +4,8 @@ uses
   lcbase,
   ltexts,
   lparser,
-  ltokenzr;
+  ltokenzr,
+  llang;
 
 begin
 end.
