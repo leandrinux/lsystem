@@ -5,7 +5,8 @@ uses
   ltexts,
   lparser,
   ltokenzr,
-  llang;
+  llang,
+  lbingen;
 
 begin
 end.

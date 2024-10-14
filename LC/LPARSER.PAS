@@ -9,7 +9,7 @@ interface
   uses
     consts, utils, uclasses, types, locale,
     uobject, uexc, ustream, ufstream, ulist, ustring,
-    lcommon, lliteral, lcbase, ltokenzr, llang;
+    lcommon, lliteral, lcbase, ltokenzr, llang, lbingen;
 
   type
     PAssemblyParser = ^TAssemblyParser;
@@ -51,6 +51,7 @@ implementation
   procedure TAssemblyParser.parse;
   var
     tokenizer: PTokenizer;
+    binaryGenerator: PBinaryGenerator;
     tokens: PList;
     language: PLanguage;
   begin
@@ -60,13 +61,16 @@ implementation
     tokens := tokenizer^.getTokens;
     writeln('Got ', tokens^.getCount ,' tokens.');
 
+    binaryGenerator := new (PBinaryGenerator, init);
     language := new (PLanguage, init);
+    language^.setDelegate(binaryGenerator);
     writeln('Parsing...');
     if language^.parseProgram(tokens) = EParseSuccessful then 
       writeln('parse success') 
     else 
       writeln('parse error');
 
+    binaryGenerator^.release;
     language^.release;
     tokenizer^.release;
   end;
