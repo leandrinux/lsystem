@@ -3,7 +3,7 @@
 
 .data
 
-  def 
+  let 
     OUTPUT_DEVICE = 0x01,
     OTHER_DEVICE = 0x02
 
@@ -20,6 +20,7 @@
 main:
     mov eax, @text     # moves the address of 'text' to ah
     mov ah, text       # moves 'H' to ah
+    mov ah, text+1     # moves 'e' to ah
     mov bl, tiny       # moves zero to bl
 
     mov ebx, @medium   # moves the address of 'medium' to ebx

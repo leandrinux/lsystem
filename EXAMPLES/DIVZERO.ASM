@@ -1,3 +1,6 @@
+# this program generates a division by zero error
+# which is captured, the code is sent to device 1 followed
+# by the bell sound
 
 .code
 

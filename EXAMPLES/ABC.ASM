@@ -4,7 +4,7 @@
 
 .data
 
- define DEVICE = 1,  # DEVICE is the device number that will receive the sequence of characters
+ let DEVICE = 1,  # DEVICE is the device number that will receive the sequence of characters
         COUNT = 26   # COUNT is the number of characters in the alphabet - the full length of the sequence
 
 .code
