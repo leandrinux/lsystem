@@ -1,0 +1,21 @@
+Builder class
+- It's the compiler starting point
+- Picks the proper reader and writer classes based on command line arguments
+
+Reader class
+- Reads source code
+- Generates messages based on what it finds.
+- Those messages can be: new sentence, new known/unknown symbol
+- May own a tokenizer class
+
+Tokenizer class
+- Splits source code into tokens, so that it can be parsed more easily
+- It's not universal. It depends on the language being read
+
+Writer class
+- Generates code based on messages it receives from the reader class
+
+Symbols class
+- Manages a list of symbols
+- Supports 'unknown' symbols: those that are mentioned but not defined yet
+
