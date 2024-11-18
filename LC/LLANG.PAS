@@ -125,6 +125,9 @@ implementation
   var
     success: boolean;
     code, argCount: byte;
+    labelName: TIdentifier;
+    operationName: TOperationName;
+    arg0, arg1: TArgumentValue;
   begin
     parseSentence := EParseUnsuccessful;
     if lookAhead = ':' then
@@ -221,7 +224,7 @@ implementation
 
   function TLanguage.parseDefinitionDeclaration: EParseResult;
   begin
-    if token <> 'def' then 
+    if token <> 'let' then 
     begin
       parseDefinitionDeclaration := EParseUnsuccessful;
       exit;

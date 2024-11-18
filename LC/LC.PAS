@@ -1,6 +1,6 @@
 uses
   strings,
-  lcommon, lcmdline, ltexts, lasmscp;
+  lcommon, lcmdline, ltexts, lparser;
 
 procedure parseFile(const path: string);
 var

@@ -17,7 +17,7 @@ interface
     public
       constructor initWithBinaryData(binaryData: PBinaryData);
       destructor done; virtual;
-      procedure make(stream: PStream);
+      function make(stream: PStream): boolean;
     private
       _binaryData: PBinaryData;
     end;
@@ -39,8 +39,9 @@ implementation
     inherited done;
   end;
 
-  procedure TBinaryGenerator.make(stream: PStream);
+  function TBinaryGenerator.make(stream: PStream): boolean;
   begin
+    make := true;
   end;
 
   { TBinaryGenerator private }

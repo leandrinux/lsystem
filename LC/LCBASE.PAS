@@ -14,6 +14,10 @@ interface
     uobject;
 
   type
+    TIdentifier = string[30];
+    
+    TArgumentValue = string[30];
+
     TRegisterName = string[3];
 
     TRegisterInfo = record
@@ -24,12 +28,12 @@ interface
 
     TRegisterInfoArray = array[0..C_REGISTER_COUNT-1] of TRegisterInfo;
 
-    TInstructionName = string[5];
+    TOperationName = string[5];
 
     TParamCount = 0..2;
 
     TOpcodeInfo = record
-      name: TInstructionName;
+      name: TOperationName;
       code: TUInt8;
       count: TParamCount;
     end;
@@ -42,7 +46,10 @@ interface
       EParameterTypeRegister,
       EParameterTypeAddress,
       EParameterTypePointer,
-      EParameterTypeSymbol
+      EParameterTypeSymbol,
+      EParameterTypeDefinition,
+      EParameterTypeVariableValue,
+      EParameterTypeVariableReference
     );
 
     TParameterInfo = record
@@ -53,22 +60,22 @@ interface
 
     TSentenceArgument = record
       argType: EParameterType;  { what kind of argument this is }
-      stringValue: TString30;   { the argument as was extracted from the source code }
+      stringValue: TArgumentValue;   { the argument as was extracted from the source code }
       intValue: TUInt32;        { if it's a literal or a memory address, this is it }
       registerCode: byte;       { if it's a pointer or a register this is its register code }
       offset: TInt16;           { if it's a pointer this is its offset constant }
     end;
 
     TSentence = record
-      labelName: TString30;
-      opname: TString30;
+      labelName: TIdentifier;
+      opname: TOperationName;
       opcode: byte;
       args: array[0..1] of TSentenceArgument;
     end;
 
     PSymbol = ^TSymbol;
     TSymbol = object (TObject)
-      name: TString30;
+      name: TIdentifier;
       value: TUInt32;
     end;
 
@@ -141,7 +148,7 @@ interface
       (name: 'in'; code:C_IN; count:2)
     );  
 
-  function getOpcodeInfoByName(const name: TInstructionName; var code, count: byte): boolean;
+  function getOpcodeInfoByName(const name: TOperationName; var code, count: byte): boolean;
   function getRegisterInfoByName(const name:TRegisterName; var code, bitSize: byte): boolean;
   function isValidRegister(const str: string): boolean;
   function isValidIdentifier(const str: string): boolean;
@@ -156,7 +163,7 @@ interface
 
 implementation
 
-  function getOpcodeInfoByName(const name: TInstructionName; var code, count: byte): boolean;
+  function getOpcodeInfoByName(const name: TOperationName; var code, count: byte): boolean;
   var
     i: byte;
   begin

@@ -69,26 +69,30 @@ implementation
     binaryData: PBinaryData;
     binaryGenerator: PBinaryGenerator;
   begin
-    writeln('Tokenizing...');
+    write('Tokenizing... ');
     tokenizer := new(PTokenizer, init);
     tokenizer^.tokenize(_source);
     tokens := tokenizer^.getTokens;
-    writeln('Got ', tokens^.getCount ,' tokens.');
+    writeln('got ', tokens^.getCount ,' tokens.');
 
     binaryData := new (PBinaryData, init);
     language := new (PLanguage, initWithTokens(tokens, binaryData));
-    writeln('Parsing...');
+    write('Parsing... ');
     if language^.parseProgram <> EParseSuccessful then 
     begin
-      writeln('parse error');
+      writeln('failed');
       exit;
     end;
 
-    writeln('Building binary...');
+    writeln('Building... ');
     binaryGenerator := new (PBinaryGenerator, initWithBinaryData(binaryData));
-    binaryGenerator^.make(_target);
-    binaryGenerator^.release;
+    if not binaryGenerator^.make(_target) then
+    begin
+      writeln('failed');
+      exit;
+    end;
 
+    binaryGenerator^.release;
     binaryData^.release;
     language^.release;
     tokenizer^.release;
