@@ -10,7 +10,7 @@ interface
   uses
     consts, utils, uclasses, types, locale,
     uobject, uexc,
-    lcwriter;
+    lcwriter, lparser, lcbase;
 
   const 
     C_BIN_WRITER_TYPE = 'bin';
@@ -21,6 +21,7 @@ interface
     public
       constructor init;
       destructor done; virtual;
+      procedure onParsedSentence(const sentence: TSentence); virtual;
     private
     end;
 
@@ -36,6 +37,11 @@ implementation
   destructor TBinaryWriter.done;
   begin
     inherited done;
+  end;
+
+  procedure TBinaryWriter.onParsedSentence(const sentence: TSentence);
+  begin
+    writeln('BinaryWriter: writing ', sentence.opname); 
   end;
 
   { TBinaryWriter private }

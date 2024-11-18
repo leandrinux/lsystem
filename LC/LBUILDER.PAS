@@ -76,6 +76,8 @@ implementation
 
   procedure TBuilder.run;
   begin
+    _parser^.setDelegate(_codeWriter);
+    _parser^.run;
   end;
 
   { TBuilder private }

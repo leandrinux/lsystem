@@ -66,10 +66,12 @@ interface
       offset: TInt16;           { if it's a pointer this is its offset constant }
     end;
 
+    PSentence = ^TSentence;
     TSentence = record
       labelName: TIdentifier;
       opname: TOperationName;
       opcode: byte;
+      argCount: byte;
       args: array[0..1] of TSentenceArgument;
     end;
 
@@ -148,6 +150,7 @@ interface
       (name: 'in'; code:C_IN; count:2)
     );  
 
+  function getInfoByOpcode(opcode: TUInt8; var opname: TOperationName; var count: byte): boolean;
   function getOpcodeInfoByName(const name: TOperationName; var code, count: byte): boolean;
   function getRegisterInfoByName(const name:TRegisterName; var code, bitSize: byte): boolean;
   function isValidRegister(const str: string): boolean;
@@ -163,6 +166,19 @@ interface
 
 implementation
 
+  function getInfoByOpcode(opcode: TUInt8; var opname: TOperationName; var count: byte): boolean;
+  var
+    i: byte;
+  begin
+    getInfoByOpcode := false;
+    i := 0;
+    while (i<C_OPCODE_COUNT) and (C_OPCODE_INFO[i].code <> opcode) do inc(i);
+    if C_OPCODE_INFO[i].code <> opcode then exit;
+    opname := C_OPCODE_INFO[i].name;
+    count := C_OPCODE_INFO[i].count;
+    getInfoByOpcode := true;
+  end;
+  
   function getOpcodeInfoByName(const name: TOperationName; var code, count: byte): boolean;
   var
     i: byte;

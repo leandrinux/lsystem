@@ -1,4 +1,4 @@
-# manually generated from ABC.ASM
+; manually generated from ABC.ASM
 
 .code
 01 10   53 00 00 00   1A 00 00 00  ; $00000000: mov al $1A

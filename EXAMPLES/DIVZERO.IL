@@ -1,4 +1,4 @@
-# manually generated from DIVZERO.ASM
+; manually generated from DIVZERO.ASM
 
 .code
 29 00   00 00 00 00   00 00 00 00  ; $00000000: jerr $46
