@@ -1,0 +1,41 @@
+{
+  unitname Unit
+  2024 LRT
+}
+unit
+  unitname;
+
+interface
+
+  uses
+    consts, utils, uclasses, types, locale,
+    uobject, uexc;
+
+  type
+    PSomething = ^TSomething;
+    TSomething = object (TObject)
+    public
+      constructor init;
+      destructor done; virtual;
+    private
+    end;
+
+implementation
+
+  { TSomething public }
+
+  constructor TSomething.init;
+  begin
+    inherited init;
+  end;
+
+  destructor TSomething.done;
+  begin
+    inherited done;
+  end;
+
+  { TSomething private }
+
+  { Other }
+
+end.

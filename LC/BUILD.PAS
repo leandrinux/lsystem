@@ -1,12 +1,7 @@
 uses
   lcmdline,
-  lliteral,
-  lcbase,
-  ltexts,
-  lparser,
-  ltokenzr,
-  llang,
-  lbingen;
+  lbuilder,
+  ltexts;
 
 begin
 end.

@@ -1,5 +1,6 @@
 {
-  Assembly source code parser unit
+  lparser Unit
+  2024 LRT
 }
 unit
   lparser;
@@ -8,98 +9,43 @@ interface
 
   uses
     consts, utils, uclasses, types, locale,
-    uobject, uexc, ustream, ufstream, ulist, ustring,
-    lcommon, lliteral, lcbase, ltokenzr, llang, lbingen, lbindata;
+    uobject, uexc, ustream;    
 
   type
-    PAssemblyParser = ^TAssemblyParser;
-    TAssemblyParser = object (TObject)
+    PParser = ^TParser;
+    TParser = object (TObject)
     public
       constructor init;
       destructor done; virtual;
-      procedure setSourceFile(const path: string);
-      procedure setTargetFile(const path: string);
-      procedure parse;
+      procedure setSource(source: PStream);
     private
       _source: PStream;
-      _target: PStream;
     end;
 
 implementation
 
-  { TAssemblyParser public }
+  { TParser public }
 
-  constructor TAssemblyParser.init;
+  constructor TParser.init;
   begin
     inherited init;
     _source := nil;
-    _target := nil;
   end;
 
-  destructor TAssemblyParser.done;
+  destructor TParser.done;
   begin
-    if (_source <> nil) then _source^.release;
-    if (_target <> nil) then _target^.release;
+    if _source <> nil then _source^.release;
     inherited done;
   end;
 
-  procedure TAssemblyParser.setSourceFile(const path: string);
-  var 
-    fs: PFileStream;
+  procedure TParser.setSource(source: PStream);
   begin
-    fs := new(PFileStream, initWithPath(path, EFileReadOnly));
-    if (_source <> nil) then _source^.release;
-    _source := fs;
+    if _source <> nil then _source^.release;
+    _source := source;
+    _source^.retain;
   end;
 
-  procedure TAssemblyParser.setTargetFile(const path: string);
-  var 
-    fs: PFileStream;
-  begin
-    fs := new(PFileStream, initWithPath(path, EFileCreate));
-    if (_target <> nil) then _target^.release;
-    _target := fs;
-  end;
-
-  procedure TAssemblyParser.parse;
-  var
-    tokenizer: PTokenizer;
-    tokens: PList;
-    language: PLanguage;
-    binaryData: PBinaryData;
-    binaryGenerator: PBinaryGenerator;
-  begin
-    write('Tokenizing... ');
-    tokenizer := new(PTokenizer, init);
-    tokenizer^.tokenize(_source);
-    tokens := tokenizer^.getTokens;
-    writeln('got ', tokens^.getCount ,' tokens.');
-
-    binaryData := new (PBinaryData, init);
-    language := new (PLanguage, initWithTokens(tokens, binaryData));
-    write('Parsing... ');
-    if language^.parseProgram <> EParseSuccessful then 
-    begin
-      writeln('failed');
-      exit;
-    end;
-
-    writeln('Building... ');
-    binaryGenerator := new (PBinaryGenerator, initWithBinaryData(binaryData));
-    if not binaryGenerator^.make(_target) then
-    begin
-      writeln('failed');
-      exit;
-    end;
-
-    binaryGenerator^.release;
-    binaryData^.release;
-    language^.release;
-    tokenizer^.release;
-  end;
-
-  { TAssemblyParser private }
-
+  { TParser private }
 
   { Other }
 

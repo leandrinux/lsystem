@@ -11,6 +11,8 @@ interface
     C_STR_BUILD_TS = 'Build date: %0 %1';
     C_STR_NO_SOURCE_FILE = 'No source file specified!';
     C_STR_BUILDING = 'Reading source...';
+    C_STR_UNKNOWN_SRC_TYPE = 'Unknown source file format';
+    C_STR_UNKNOWN_DST_TYPE = 'Unknown target file format';
     C_STR_READ_ERROR = 'Could not read source code!';
     C_STR_SENTENCES_PROC = '%0 sentences processed';
     C_STR_MAKING = 'Making object file...';
