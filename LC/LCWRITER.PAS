@@ -19,6 +19,7 @@ interface
       constructor init;
       destructor done; virtual;
       procedure setTarget(target: PStream);
+      function getTarget: PStream;
       procedure onParsedSentence(const sentence: TSentence); virtual;
       procedure receiveMessage(msg: PObjectMessage); virtual;
     private
@@ -46,6 +47,11 @@ implementation
     if _target <> nil then _target^.release;
     _target := target;
     _target^.retain;
+  end;
+
+  function TCodeWriter.getTarget: PStream;
+  begin
+    getTarget := _target;
   end;
 
   procedure TCodeWriter.onParsedSentence(const sentence: TSentence);

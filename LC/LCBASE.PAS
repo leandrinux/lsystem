@@ -60,10 +60,10 @@ interface
 
     TSentenceArgument = record
       argType: EParameterType;  { what kind of argument this is }
-      stringValue: TArgumentValue;   { the argument as was extracted from the source code }
-      intValue: TUInt32;        { if it's a literal or a memory address, this is it }
-      registerCode: byte;       { if it's a pointer or a register this is its register code }
-      offset: TInt16;           { if it's a pointer this is its offset constant }
+      { value: if it's a literal or a memory address, this is it }
+      { if it's a pointer or a register this is its register code }
+      { if it's a pointer this is its 16-bit offset constant }
+      value: TUInt32;        
     end;
 
     PSentence = ^TSentence;

@@ -89,14 +89,18 @@ implementation
   var 
     token: TToken;
     idx: byte;
-    value: TUInt32;
+    value, longValue: TUInt32;
 
-  procedure readToken;
+  function readToken: boolean;
   begin
+    readToken := false;
     token := '$';
     while (idx<=length(line)) and (line[idx] = ' ') do inc(idx);
     if idx <= length(line) then token := token + line[idx]; inc(idx);
     if idx <= length(line) then token := token + line[idx]; inc(idx);
+    if length(token) <> 3 then exit;
+    if not hex2int(token, value) then exit;
+    readToken := true;
   end;
 
   begin
@@ -104,17 +108,28 @@ implementation
     idx := 1;
 
     { opcode }
-    readToken;
-    if length(token) <> 3 then exit;
-    if not hex2int(token, value) then exit;
+    if not readToken then exit;
+    sentence.opcode := value;
     getInfoByOpcode(value, sentence.opname, sentence.argCount);
 
     { param types }
-    readToken;
-    if length(token) <> 3 then exit;
-    if not hex2int(token, value) then exit;
+    if not readToken then exit;
     sentence.args[0].argType := EParameterType(value shr 4);
     sentence.args[1].argType := EParameterType(value and $F);
+
+    { param value 0 }
+    if not readToken then exit; longValue := value;
+    if not readToken then exit; longValue := longValue or (value shl 8);
+    if not readToken then exit; longValue := longValue or (value shl 16);
+    if not readToken then exit; longValue := longValue or (value shl 24);
+    sentence.args[0].value := longValue;
+
+    { param value 1 }
+    if not readToken then exit; longValue := value;
+    if not readToken then exit; longValue := longValue or (value shl 8);
+    if not readToken then exit; longValue := longValue or (value shl 16);
+    if not readToken then exit; longValue := longValue or (value shl 24);
+    sentence.args[1].value := longValue;
 
     readSentence := true;
   end;
