@@ -4,6 +4,7 @@ The second lsystem release must include multiple improvements for both compiler 
 
 ## Compiler
 
+  * Support for IL (intermediate language) as input language
   * Support for inline comments in code using #
   * Improved parsing prevents crashes due to invalid characters
   * Extra argument validations
@@ -43,6 +44,7 @@ The second lsystem release must include multiple improvements for both compiler 
 
 # 1.3 Minuet goals
 
+  * Support for IL (intermediate language) as output language
   * Prevent the "jump to 0 on CPU panic" behavior by using another flag and a instruction that disables it only for the next instruction
   * Monochrome bitmap video display device
     * A command should turn on and off the device

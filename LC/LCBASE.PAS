@@ -41,11 +41,11 @@ interface
     TOpcodeInfoArray = array[0..C_OPCODE_COUNT-1] of TOpcodeInfo;
 
     EParameterType = (
-      EParameterTypeUnknown,
       EParameterTypeLiteral,
       EParameterTypeRegister,
       EParameterTypeAddress,
       EParameterTypePointer,
+      EParameterTypeUnknown,
       EParameterTypeSymbol,
       EParameterTypeDefinition,
       EParameterTypeVariableValue,
@@ -82,6 +82,10 @@ interface
     end;
 
   const
+    C_PARAMETER_TYPES: array[EParameterType] of string[3] = (
+      'LIT', 'REG', 'MEM', 'PTR', 'UNK', 'SYM', 'DEF', 'VAR', 'REF'
+    );
+    
     C_REGISTER_INFO: TRegisterInfoArray = (
       (name: 'sp';  code:C_SP;  bitSize:32),
       (name: 'bp';  code:C_BP;  bitSize:32),

@@ -58,19 +58,8 @@ implementation
     while not s^.isEOF do
     begin
       ln := trim(s^.readln);
-      writeln('ILParser: parsing line "', ln, '"');
-
-      if length(ln) = 0 then 
-      begin
-        writeln('skip empty line');
-        continue;
-      end;
-
-      if ln[1] = ';' then 
-      begin
-        writeln('skip comment line');
-        continue;
-      end;
+      if length(ln) = 0 then continue;
+      if ln[1] = ';' then continue;
 
       case state of 
         EStateData: 
@@ -78,7 +67,6 @@ implementation
           if ln = '.code' then
           begin
             state := EStateCode;
-            writeln('ILParser: code block started');
           end else  
             writeln('ILParser: unexpected text in data block');
         end;
@@ -107,18 +95,27 @@ implementation
   begin
     token := '$';
     while (idx<=length(line)) and (line[idx] = ' ') do inc(idx);
-    if idx <= length(line) then token := token + line[idx];
-    inc(idx);
-    if idx <= length(line) then token := token + line[idx];
+    if idx <= length(line) then token := token + line[idx]; inc(idx);
+    if idx <= length(line) then token := token + line[idx]; inc(idx);
   end;
 
   begin
     readSentence := false;
     idx := 1;
+
+    { opcode }
     readToken;
     if length(token) <> 3 then exit;
     if not hex2int(token, value) then exit;
     getInfoByOpcode(value, sentence.opname, sentence.argCount);
+
+    { param types }
+    readToken;
+    if length(token) <> 3 then exit;
+    if not hex2int(token, value) then exit;
+    sentence.args[0].argType := EParameterType(value shr 4);
+    sentence.args[1].argType := EParameterType(value and $F);
+
     readSentence := true;
   end;
 

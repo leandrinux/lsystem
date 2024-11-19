@@ -41,7 +41,12 @@ implementation
 
   procedure TBinaryWriter.onParsedSentence(const sentence: TSentence);
   begin
-    writeln('BinaryWriter: writing ', sentence.opname); 
+    with sentence do
+    begin
+      write('BinaryWriter: ', opname, '(', opcode, ') '); 
+      write(C_PARAMETER_TYPES[args[0].argType], ', ', C_PARAMETER_TYPES[args[1].argType]);
+      writeln;
+    end;
   end;
 
   { TBinaryWriter private }
