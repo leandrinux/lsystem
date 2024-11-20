@@ -17,9 +17,9 @@ interface
     end;
 
   const cmdline: TCommandLine = (
-    srcPath: '\examples\abc.il';
+    srcPath: '\examples\divzero.il';
     srcType: 'il';
-    dstPath: '\examples\abc.gen';
+    dstPath: '\examples\divzero.gen';
     dstType: 'bin'
   );
 
