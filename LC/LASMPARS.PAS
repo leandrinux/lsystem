@@ -59,20 +59,8 @@ implementation
       writeln('failed');
       exit;
     end;
-{
-
-    writeln('Building... ');
-    binaryGenerator := new (PBinaryGenerator, initWithBinaryData(binaryData));
-    if not binaryGenerator^.make(_target) then
-    begin
-      writeln('failed');
-      exit;
-    end;
-
-    binaryGenerator^.release;
-    binaryData^.release;
+    
     language^.release;
-  }
     tokenizer^.release;
   end;
 
