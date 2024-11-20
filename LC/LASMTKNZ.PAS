@@ -3,7 +3,7 @@
   Part of the assembly source code parser component
 }
 unit 
-  ltokenzr;
+  lasmtknz;
 
 interface
 

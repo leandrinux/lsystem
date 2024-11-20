@@ -11,7 +11,7 @@ interface
     consts, utils, uclasses, types, locale,
     uobject, uexc, ufstream,
     lcommon, ltexts, 
-    lparser, lilpars,
+    lparser, lilpars, lasmpars,
     lcwriter, lbinw;
 
   type
@@ -53,6 +53,8 @@ implementation
     if _parser<>nil then _parser^.release;
     if fileType = C_IL_PARSER_TYPE then 
       _parser := new(PILParser, init)
+    else if fileType = C_ASM_PARSER_TYPE then
+      _parser := new(PAssemblyParser, init)
     else
       msg(EMsgFatal, C_STR_UNKNOWN_SRC_TYPE, '');
     fs := new(PFilestream, initWithPath(path, EFileReadOnly));

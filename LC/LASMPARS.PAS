@@ -2,27 +2,27 @@
   Assembly source code parser unit
 }
 unit
-  lparser;
+  lasmpars;
 
 interface
 
   uses
     consts, utils, uclasses, types, locale,
     uobject, uexc, ustream, ufstream, ulist, ustring,
-    lcommon, lliteral, lcbase, ltokenzr, llang, lbingen, lbindata;
+    lcommon, lparser, lasmtknz;
+    {lliteral, lcbase, ltokenzr, llang, lbingen, lbindata;}
+
+  const 
+    C_ASM_PARSER_TYPE = 'asm';
 
   type
     PAssemblyParser = ^TAssemblyParser;
-    TAssemblyParser = object (TObject)
+    TAssemblyParser = object (TParser)
     public
       constructor init;
       destructor done; virtual;
-      procedure setSourceFile(const path: string);
-      procedure setTargetFile(const path: string);
-      procedure parse;
+      procedure run; virtual;
     private
-      _source: PStream;
-      _target: PStream;
     end;
 
 implementation
@@ -32,49 +32,25 @@ implementation
   constructor TAssemblyParser.init;
   begin
     inherited init;
-    _source := nil;
-    _target := nil;
   end;
 
   destructor TAssemblyParser.done;
   begin
-    if (_source <> nil) then _source^.release;
-    if (_target <> nil) then _target^.release;
     inherited done;
   end;
 
-  procedure TAssemblyParser.setSourceFile(const path: string);
-  var 
-    fs: PFileStream;
-  begin
-    fs := new(PFileStream, initWithPath(path, EFileReadOnly));
-    if (_source <> nil) then _source^.release;
-    _source := fs;
-  end;
-
-  procedure TAssemblyParser.setTargetFile(const path: string);
-  var 
-    fs: PFileStream;
-  begin
-    fs := new(PFileStream, initWithPath(path, EFileCreate));
-    if (_target <> nil) then _target^.release;
-    _target := fs;
-  end;
-
-  procedure TAssemblyParser.parse;
+  procedure TAssemblyParser.run;
   var
     tokenizer: PTokenizer;
     tokens: PList;
-    language: PLanguage;
-    binaryData: PBinaryData;
-    binaryGenerator: PBinaryGenerator;
+    {language: PLanguage;}
   begin
     write('Tokenizing... ');
     tokenizer := new(PTokenizer, init);
-    tokenizer^.tokenize(_source);
+    tokenizer^.tokenize(getSource);
     tokens := tokenizer^.getTokens;
     writeln('got ', tokens^.getCount ,' tokens.');
-
+{
     binaryData := new (PBinaryData, init);
     language := new (PLanguage, initWithTokens(tokens, binaryData));
     write('Parsing... ');
@@ -95,6 +71,7 @@ implementation
     binaryGenerator^.release;
     binaryData^.release;
     language^.release;
+  }
     tokenizer^.release;
   end;
 
