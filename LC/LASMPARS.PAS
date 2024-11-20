@@ -9,7 +9,7 @@ interface
   uses
     consts, utils, uclasses, types, locale,
     uobject, uexc, ustream, ufstream, ulist, ustring,
-    lcommon, lparser, lasmtknz;
+    lcommon, lparser, lasmtknz, lasmlang;
     {lliteral, lcbase, ltokenzr, llang, lbingen, lbindata;}
 
   const 
@@ -43,22 +43,23 @@ implementation
   var
     tokenizer: PTokenizer;
     tokens: PList;
-    {language: PLanguage;}
+    language: PLanguage;
   begin
     write('Tokenizing... ');
     tokenizer := new(PTokenizer, init);
     tokenizer^.tokenize(getSource);
     tokens := tokenizer^.getTokens;
     writeln('got ', tokens^.getCount ,' tokens.');
-{
-    binaryData := new (PBinaryData, init);
-    language := new (PLanguage, initWithTokens(tokens, binaryData));
+
+    language := new (PLanguage, initWithTokens(tokens));
+    language^.setDelegate(self.getDelegate);
     write('Parsing... ');
     if language^.parseProgram <> EParseSuccessful then 
     begin
       writeln('failed');
       exit;
     end;
+{
 
     writeln('Building... ');
     binaryGenerator := new (PBinaryGenerator, initWithBinaryData(binaryData));

@@ -2,14 +2,14 @@
   Language parser helper unit
 }
 unit 
-  llang;
+  lasmlang;
 
 interface
 
   uses
     consts, utils, uclasses, types, locale,
     uobject, uexc, ulist,
-    ltokenzr, lcbase, lbindata;
+    lcbase, lasmtknz;
 
   type
     EParseResult = (
@@ -21,12 +21,11 @@ interface
     PLanguage = ^TLanguage;
     TLanguage = object (TObject)
     public
-      constructor initWithTokens(tokens: PList; binaryData: PBinaryData);
+      constructor initWithTokens(tokens: PList);
       destructor done; virtual;
       function parseProgram: EParseResult;  
     private
       _tokens: PList;
-      _binaryData: PBinaryData;
       procedure next;
       function token: string;
       function lookAhead: string;
@@ -44,21 +43,17 @@ implementation
 
   { TLanguage public }
 
-  constructor TLanguage.initWithTokens(tokens: PList; binaryData: PBinaryData);
+  constructor TLanguage.initWithTokens(tokens: PList);
   begin
     inherited init;
     _tokens := tokens;
     _tokens^.retain;
     _tokens^.moveToStart;
-
-    _binaryData := binaryData;
-    _binaryData^.retain;
   end;
 
   destructor TLanguage.done;
   begin
     _tokens^.release;
-    _binaryData^.release;
     inherited done;
   end;
 
