@@ -119,25 +119,32 @@ implementation
   function TLanguage.parseSentence: EParseResult;
   var
     success: boolean;
-    code, argCount: byte;
-    labelName: TIdentifier;
-    operationName: TOperationName;
-    arg0, arg1: TArgumentValue;
+    {
+      code, argCount: byte;
+      labelName: TIdentifier;
+      operationName: TOperationName;
+      arg0, arg1: TArgumentValue;
+    }
+    sentence: TSentence;
   begin
     parseSentence := EParseUnsuccessful;
     if lookAhead = ':' then
     begin
-      next; next;
+      sentence.labelName := token;
+      next; 
+      next;
     end;
-    success := getOpcodeInfoByName(token, code, argCount);
+    sentence.opname := token; 
+    with sentence do success := getOpcodeInfoByName(opname, opcode, argCount);
 
     if success then
     begin
       next;
-      case argCount of
+      case sentence.argCount of
         0: parseSentence := EParseSuccessful;
         1: begin
-          if getParameterType(token) <> EParameterTypeUnknown then 
+          sentence.args[0].argType := getParameterType(token);
+          if sentence.args[0].argType <> EParameterTypeUnknown then 
           begin
             next;
             parseSentence := EParseSuccessful;
@@ -145,13 +152,15 @@ implementation
             writeln('expected first argument');
         end;
         2: begin
-          if getParameterType(token) <> EParameterTypeUnknown then 
+          sentence.args[0].argType := getParameterType(token);
+          if sentence.args[0].argType <> EParameterTypeUnknown then 
           begin
             next;
             if token = ',' then
             begin
             next;
-            if getParameterType(token) <> EParameterTypeUnknown then 
+            sentence.args[1].argType := getParameterType(token);
+            if sentence.args[1].argType <> EParameterTypeUnknown then 
             begin
               next;
               parseSentence := EParseSuccessful;
@@ -169,6 +178,7 @@ implementation
           end;
         end;
       end;
+      sendMessageWithData(C_MSG_ON_PARSED_SENTENCE, getDelegate, @sentence, sizeof(TSentence));
     end;
   end;
 

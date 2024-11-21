@@ -82,6 +82,8 @@ interface
     end;
 
   const
+    C_MSG_ON_PARSED_SENTENCE = $F0;
+
     C_PARAMETER_TYPES: array[EParameterType] of string[3] = (
       'LIT', 'REG', 'MEM', 'PTR', 'UNK', 'SYM', 'DEF', 'VAR', 'REF'
     );

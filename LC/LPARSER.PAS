@@ -11,9 +11,6 @@ interface
     consts, utils, uclasses, types, locale,
     uobject, uexc, ustream, lcommon, lcbase;   
     
-  const
-    C_MSG_ON_PARSED_SENTENCE = $F0;
-
   type
     PParser = ^TParser;
     TParser = object (TObject)
