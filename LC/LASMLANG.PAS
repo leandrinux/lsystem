@@ -37,6 +37,7 @@ interface
       function parseVariableDeclaration: EParseResult;
       function parseDeclaration: EParseResult;
       function parseDataBlock: EParseResult;
+      procedure didParseSentence(var sentence: TSentence);
   end;
 
 implementation
@@ -119,14 +120,9 @@ implementation
   function TLanguage.parseSentence: EParseResult;
   var
     success: boolean;
-    {
-      code, argCount: byte;
-      labelName: TIdentifier;
-      operationName: TOperationName;
-      arg0, arg1: TArgumentValue;
-    }
     sentence: TSentence;
   begin
+    fillchar(sentence, sizeof(sentence), 0);
     parseSentence := EParseUnsuccessful;
     if lookAhead = ':' then
     begin
@@ -143,6 +139,7 @@ implementation
       case sentence.argCount of
         0: parseSentence := EParseSuccessful;
         1: begin
+          sentence.args[0].value := token;
           sentence.args[0].argType := getParameterType(token);
           if sentence.args[0].argType <> EParameterTypeUnknown then 
           begin
@@ -152,6 +149,7 @@ implementation
             writeln('expected first argument');
         end;
         2: begin
+          sentence.args[0].value := token;
           sentence.args[0].argType := getParameterType(token);
           if sentence.args[0].argType <> EParameterTypeUnknown then 
           begin
@@ -159,6 +157,7 @@ implementation
             if token = ',' then
             begin
             next;
+            sentence.args[1].value := token;
             sentence.args[1].argType := getParameterType(token);
             if sentence.args[1].argType <> EParameterTypeUnknown then 
             begin
@@ -178,7 +177,7 @@ implementation
           end;
         end;
       end;
-      sendMessageWithData(C_MSG_ON_PARSED_SENTENCE, getDelegate, @sentence, sizeof(TSentence));
+      didParseSentence(sentence);
     end;
   end;
 
@@ -345,5 +344,28 @@ implementation
   end;
     
   { Other }
+
+  procedure TLanguage.didParseSentence(var sentence: TSentence);
+  begin
+    with sentence do
+    begin
+      if length(labelName)>0 then write('label: "', labelName, '", ');
+      write('op: ', opname);
+      write('(', byteToHex(opcode), '), ');
+      write('args: ', argCount, ', ');
+      if argCount>0 then
+      begin
+        write('arg0: "', args[0].value , '"');
+        write('(', ord(args[0].argType), ')');
+      end;
+      if argCount>1 then
+      begin
+        write(', arg1: "', args[1].value , '"');
+        write('(', ord(args[1].argType), ')');
+      end;
+    end;
+    writeln;
+    { sendMessageWithData(C_MSG_ON_PARSED_SENTENCE, getDelegate, @sentence, sizeof(TSentence)); }
+  end;
 
 end.

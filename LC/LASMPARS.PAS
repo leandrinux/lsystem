@@ -53,13 +53,13 @@ implementation
 
     language := new (PLanguage, initWithTokens(tokens));
     language^.setDelegate(self.getDelegate);
-    write('Parsing... ');
+    writeln('Parsing... ');
     if language^.parseProgram <> EParseSuccessful then 
     begin
       writeln('failed');
       exit;
     end;
-    
+
     language^.release;
     tokenizer^.release;
   end;

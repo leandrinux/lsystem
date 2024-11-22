@@ -122,14 +122,14 @@ implementation
     if not readToken then exit; longValue := longValue or (value shl 8);
     if not readToken then exit; longValue := longValue or (value shl 16);
     if not readToken then exit; longValue := longValue or (value shl 24);
-    sentence.args[0].value := longValue;
+    sentence.args[0].value := longToHex(longValue);
 
     { param value 1 }
     if not readToken then exit; longValue := value;
     if not readToken then exit; longValue := longValue or (value shl 8);
     if not readToken then exit; longValue := longValue or (value shl 16);
     if not readToken then exit; longValue := longValue or (value shl 24);
-    sentence.args[1].value := longValue;
+    sentence.args[1].value := longToHex(longValue);
 
     readSentence := true;
   end;

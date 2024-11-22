@@ -7,9 +7,10 @@ const
 
 procedure build;
 var
-  builder: PBuilder;
+  builder: PBuilder;  
 begin
   builder := new(PBuilder, init);
+  writeln('Building ', cmdline.srcPath);
   builder^.setSource(cmdline.srcPath, cmdline.srcType);
   builder^.setTarget(cmdline.dstPath, cmdline.dstType);
   builder^.run;
