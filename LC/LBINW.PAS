@@ -19,8 +19,7 @@ interface
     PBinaryWriter = ^TBinaryWriter;
     TBinaryWriter = object (TCodeWriter)
     public
-      constructor init;
-      destructor done; virtual;
+      procedure onFileCreated; virtual;
       procedure onParsedSentence(const sentence: TSentence); virtual;
     private
     end;
@@ -29,14 +28,13 @@ implementation
 
   { TBinaryWriter public }
 
-  constructor TBinaryWriter.init;
+  procedure TBinaryWriter.onFileCreated;
+  var
+    header: TBinaryFileHeader;
   begin
-    inherited init;
-  end;
-
-  destructor TBinaryWriter.done;
-  begin
-    inherited done;
+    fillchar(header, sizeof(TBinaryFileHeader), 0);
+    header.signature := C_BINARY_SIGNATURE;
+    getTarget^.write(@header, sizeOf(TBinaryFileHeader));
   end;
 
   procedure TBinaryWriter.onParsedSentence(const sentence: TSentence);

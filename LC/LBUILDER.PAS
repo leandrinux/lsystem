@@ -70,13 +70,12 @@ implementation
   var
     fs: PFileStream;
   begin
+    fs := new(PFilestream, initWithPath(path, EFileCreate));
     if _codeWriter<>nil then _codeWriter^.release;
     if fileType = C_BIN_WRITER_TYPE then 
-      _codeWriter := new(PBinaryWriter, init)
+      _codeWriter := new(PBinaryWriter, initWithTarget(fs))
     else
       msg(EMsgFatal, C_STR_UNKNOWN_DST_TYPE, '');
-    fs := new(PFilestream, initWithPath(path, EFileCreate));
-    _codeWriter^.setTarget(fs);
     fs^.release;
   end;
 

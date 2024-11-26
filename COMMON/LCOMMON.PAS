@@ -97,7 +97,14 @@ interface
   const
     C_BINARY_SIGNATURE : TBinarySignature  = 'LSYSBIN';
 
-  type
+  type 
+    TBinaryFileHeader = packed record
+      signature: TBinarySignature;
+      binaryVersion: word;
+      dataOffset, dataSize: longint;
+      codeOffset, codeSize: longint;
+    end;
+
     TString3 = string[3];
     TString5 = string[5];
     TString30 = string[30];
