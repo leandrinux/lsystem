@@ -23,6 +23,7 @@ interface
       destructor done; virtual;
       procedure run; virtual;
     private
+      procedure readDataBytes(const line: string);
       function readSentence(const line: string; var sentence: TSentence): boolean;
       procedure didParseSentence(sentence: PSentence);
     end;
@@ -44,8 +45,10 @@ implementation
   procedure TILParser.run;
   type
     EState = (
+      EStateStart,
       EStateCode,
-      EStateData
+      EStateData,
+      EStateFail
     );
   var
     s: PStream;
@@ -54,21 +57,40 @@ implementation
     sentence: TSentence;
   begin
     s := getSource;
-    state := EStateData;
-    while not s^.isEOF do
+    state := EStateStart;
+    while (not s^.isEOF) and (state <> EStateFail) do
     begin
       ln := trim(s^.readln);
       if length(ln) = 0 then continue;
       if ln[1] = ';' then continue;
 
       case state of 
+        EStateStart:
+        begin
+          if ln = '.data' then
+          begin
+            msg('Compiling data...');
+            state := EStateData;
+          end else if ln = '.code' then
+          begin
+            msg('Compiling code...');
+            state := EStateCode;
+          end else begin
+            writeln('Unexpected section name "', ln, '"');
+            state := EStateFail;
+          end;
+        end;
+
         EStateData: 
         begin
           if ln = '.code' then
           begin
             state := EStateCode;
-          end else  
-            writeln('ILParser: unexpected text in data block');
+            if getData <> nil then 
+              msg('Final data size is ' + intToStr(getData^.getSize));
+            msg('Compiling code...');
+          end else
+            readDataBytes(ln);
         end;
 
         EStateCode:
@@ -76,16 +98,44 @@ implementation
           if readSentence(ln, sentence) then 
             didParseSentence(@sentence);
         end;
+
       end;
     end;
+    msg('Parsing ended.');
   end;
 
   { TILParser private }
 
+  procedure TILParser.readDataBytes(const line: string);
+  const
+    C_HEX_CHARACTERS: set of char = ['0'..'9', 'A'..'F'];
+  var 
+    i, c: byte;
+    token: string[2];
+    value: byte;
+  begin
+    if getData = nil then begin
+      msg('Skipping data line because data stream is not set');
+      exit;
+    end;
+    i := 1;
+    c := length(line);
+    while (i <= c) and (line[i]<>';') do 
+    begin
+      if line[i] in C_HEX_CHARACTERS then
+        if ((i+1) <= c) and (line[i+1] in C_HEX_CHARACTERS) then
+        begin
+          token := line[i] + line[i+1];
+          value := hexToByte(token);
+          getData^.write(@token, 1);
+        end;
+      inc(i);
+    end; 
+  end;
+
   function TILParser.readSentence(const line: string; var sentence: TSentence): boolean;
   type
     TToken = string[3];
-
   var 
     token: TToken;
     idx: byte;

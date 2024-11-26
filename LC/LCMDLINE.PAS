@@ -14,13 +14,17 @@ interface
       srcType: TFileType;
       dstPath: TFilePath;
       dstType: TFileType;
+      dataMaxSize: word;
+      verbose: boolean;
     end;
 
   const cmdline: TCommandLine = (
-    srcPath: '\examples\divzero.asm';
-    srcType: 'asm';
-    dstPath: '\examples\divzero.gen';
-    dstType: 'bin'
+    srcPath: '\examples\hello3.il';
+    srcType: 'il';
+    dstPath: '\examples\hello3.gen';
+    dstType: 'bin';
+    dataMaxSize: 4096;
+    verbose: true
   );
 
 implementation

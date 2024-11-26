@@ -10,9 +10,11 @@ var
   builder: PBuilder;  
 begin
   builder := new(PBuilder, init);
-  writeln('Building ', cmdline.srcPath);
+  msg(EMsgGood, 'Building %0', cmdline.srcPath);
   builder^.setSource(cmdline.srcPath, cmdline.srcType);
   builder^.setTarget(cmdline.dstPath, cmdline.dstType);
+  builder^.setDataMaxSize(cmdline.dataMaxSize);
+  builder^.setVerbose(cmdline.verbose);
   builder^.run;
   builder^.release;
 end;

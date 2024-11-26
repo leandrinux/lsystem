@@ -9,7 +9,7 @@ interface
 
   uses
     consts, utils, uclasses, types, locale,
-    uobject, uexc, ufstream,
+    uobject, uexc, ufstream, umstream,
     lcommon, ltexts, 
     lparser, lilpars, lasmpars,
     lcwriter, lbinw;
@@ -22,10 +22,13 @@ interface
       destructor done; virtual;
       procedure setSource(const path, fileType: string);
       procedure setTarget(const path, fileType: string);
+      procedure setDataMaxSize(maxSize: word);
+      procedure setVerbose(value: boolean);
       procedure run;
     private
       _parser: PParser;
       _codeWriter: PCodeWriter;
+      _verbose: boolean;
     end;
 
 implementation
@@ -37,6 +40,7 @@ implementation
     inherited init;
     _parser := nil;
     _codeWriter := nil;
+    _verbose := false;
   end;
 
   destructor TBuilder.done;
@@ -76,8 +80,24 @@ implementation
     fs^.release;
   end;
 
+  procedure TBuilder.setVerbose(value: boolean);
+  begin
+    _verbose := value;
+  end;
+
+  procedure TBuilder.setDataMaxSize(maxSize: word);
+  var
+    ms: PMemoryStream;
+  begin
+    if _parser = nil then exit;
+    ms := new(PMemoryStream, initWithSize(maxSize));
+    _parser^.setData(ms);
+    ms^.release;
+  end;
+
   procedure TBuilder.run;
   begin
+    _parser^.setVerbose(_verbose);
     _parser^.setDelegate(_codeWriter);
     _parser^.run;
   end;
