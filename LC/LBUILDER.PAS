@@ -72,7 +72,7 @@ implementation
 
   procedure TBuilder.runWithStreams(source: PStream; target: PStream);
   var
-    codeWriter: PCodeWriter;
+    writer: PWriter;
   begin
     if _parser = nil then
     begin
@@ -80,13 +80,14 @@ implementation
       exit;
     end;
 
-    codeWriter := new(PCodeWriter, init);
+    writer := new(PWriter, init);
     _parser^.setSource(source);
     _parser^.setVerbose(_verbose);
-    _parser^.setWriter(codeWriter);
+    _parser^.setWriter(Writer);
     _parser^.run;
-    codeWriter^.save(target);
-    codeWriter^.release;
+    writer^.save(target);
+    writer^.release;
+    msg(EMsgGood, 'Build succeeded', #0);
   end;
 
   procedure TBuilder.runWithPaths(const srcpath, dstPath: string);
@@ -94,7 +95,7 @@ implementation
     src, dst: PFileStream;
   begin
     src := new(PFilestream, initWithPath(srcpath, EFileReadOnly));
-    dst := new(PFilestream, initWithPath(dstPath, EFileReadWrite));
+    dst := new(PFilestream, initWithPath(dstPath, EFileCreate));
     runWithStreams(src, dst);
     src^.release;
     dst^.release;

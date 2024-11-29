@@ -1,5 +1,5 @@
 {
-  lcwriter Unit
+  lwriter Unit
   2024 LRT
 }
 unit
@@ -13,8 +13,8 @@ interface
     lcommon, lcbase;  
 
   type
-    PCodeWriter = ^TCodeWriter;
-    TCodeWriter = object (TObject)
+    PWriter = ^TWriter;
+    TWriter = object (TObject)
     public
       constructor init;
       destructor done; virtual;
@@ -32,23 +32,23 @@ implementation
     C_DEFAULT_CODE_MAX_SIZE = 4096;
     C_DEFAULT_DATA_MAX_SIZE = 4096;
 
-  { TCodeWriter public }
+  { TWriter public }
 
-  constructor TCodeWriter.init;
+  constructor TWriter.init;
   begin
     inherited init;
     _code := new(PMemoryStream, initWithSize(C_DEFAULT_CODE_MAX_SIZE));
     _data := new(PMemoryStream, initWithSize(C_DEFAULT_DATA_MAX_SIZE));
   end;
 
-  destructor TCodeWriter.done;
+  destructor TWriter.done;
   begin
     _code^.release;
     _data^.release;
     inherited done;
   end;
   
-  procedure TCodeWriter.onSentence(const sentence: TSentence);
+  procedure TWriter.onSentence(const sentence: TSentence);
   var
     data: array[0..9] of byte;
     value: TUInt32;
@@ -80,17 +80,35 @@ implementation
     end;
   end;
 
-  procedure TCodeWriter.onData(data: pointer; size: longint);
+  procedure TWriter.onData(data: pointer; size: longint);
   begin
     _data^.write(data, size);
   end;
 
-  procedure TCodeWriter.save(output: PStream);
+  procedure TWriter.save(output: PStream);
+  var
+    header: TBinaryFileHeader;
   begin
-    writeln('todo: saving code and data to output stream');
+    with header do
+    begin
+      signature := C_BINARY_SIGNATURE;
+      binaryVersion := 12;
+      dataOffset := sizeof(TBinaryFileHeader);
+      dataSize := _data^.getSize;
+      codeOffset := dataOffset + dataSize;
+      codeSize := _code^.getSize;
+    end;
+    writeln('Saving header ', sizeof(TBinaryFileHeader), ' bytes');
+    output^.write(@header, sizeof(TBinaryFileHeader));
+
+    writeln('Saving data ', _data^.getSize, ' bytes');
+    _data^.copyAllTo(output);
+
+    writeln('Saving code ', _code^.getSize, ' bytes');
+    _code^.copyAllTo(output);
   end;
 
-  { TCodeWriter private }
+  { TWriter private }
 
   { Other }
 

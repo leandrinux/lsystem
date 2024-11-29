@@ -120,7 +120,7 @@ implementation
         begin
           token := line[i] + line[i+1];
           value := hexToByte(token);
-          getWriter^.onData(@token, 1);
+          getWriter^.onData(@value, 1);
         end;
       inc(i);
     end; 
