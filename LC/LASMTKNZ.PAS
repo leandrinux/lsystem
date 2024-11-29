@@ -108,7 +108,7 @@ implementation
           begin
             value := value + ch;
             state := EStateString;
-          end else if ch in [',', ':'] then
+          end else if ch in [',', ':', '='] then
           begin
             if length(value)=0 then 
               value := value + ch

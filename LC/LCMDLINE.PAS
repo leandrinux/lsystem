@@ -17,9 +17,9 @@ interface
     end;
 
   const cmdline: TCommandLine = (
-    srcPath: '\examples\write.asm';
+    srcPath: '\examples\defs.asm';
     srcType: 'asm';
-    dstPath: '\examples\write.bin';
+    dstPath: '\examples\defs.bin';
     verbose: true
   );
 

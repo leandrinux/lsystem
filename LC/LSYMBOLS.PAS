@@ -12,26 +12,32 @@ interface
     lcommon, lcbase;
 
   type
+    PSymbol = ^TSymbol;
+    TSymbol = object (TObject)
+      name: TIdentifier;
+      value: TUInt32;
+    end;
+
+    PUnknownSymbol = ^TUnknownSymbol;
+    TUnknownSymbol = object (TObject)
+      name: TIdentifier;
+      reference: PUInt32;
+    end;
+
     PSymbols = ^TSymbols;
     TSymbols = object (TObject)
     public
       constructor init;
       destructor done; virtual;
-      procedure addValue(const name: TString30; value: TUInt32);
-      procedure addUnknownValue(const name: TString30; reference: PUInt32);
-      function getValue(const name: TString30; var value: TUInt32): boolean;
+      procedure addSymbol(symbol: PSymbol);
+      procedure addUnknownValue(const name: TIdentifier; reference: PUInt32);
+      function getValue(const name: TIdentifier; var value: TUInt32): boolean;
       function getUnknownCount: word;
-      function getFirstUnknownName: TString30;
+      function getFirstUnknownName: TIdentifier;
     private
       _known: PList;
       _unknown: PList;
-      procedure replaceUnknown(const name: TString30; value: TUInt32);
-    end;
-
-    PUnknownSymbol = ^TUnknownSymbol;
-    TUnknownSymbol = object (TObject)
-      name: TString30;
-      reference: PUInt32;
+      procedure replaceUnknown(const name: TIdentifier; value: TUInt32);
     end;
 
 implementation
@@ -52,19 +58,14 @@ implementation
     inherited done;
   end;
 
-  procedure TSymbols.addValue(const name: TString30; value: TUInt32);
-  var
-    symbol: PSymbol; 
+  procedure TSymbols.addSymbol(symbol: PSymbol);
   begin
-    symbol := new(PSymbol, init);
-    symbol^.name := name;
-    symbol^.value := value;
+    writeln('Adding symbol ', symbol^.name, ' with value ', symbol^.value);
     _known^.addObject(symbol);
-    symbol^.release;
-    replaceUnknown(name, value);
+    replaceUnknown(symbol^.name, symbol^.value);
   end;
 
-  function TSymbols.getValue(const name: TString30; var value: TUInt32): boolean;
+  function TSymbols.getValue(const name: TIdentifier; var value: TUInt32): boolean;
   var
     symbol: PSymbol;
   begin
@@ -85,7 +86,7 @@ implementation
     end;
   end;
 
-  procedure TSymbols.addUnknownValue(const name: TString30; reference: PUInt32);
+  procedure TSymbols.addUnknownValue(const name: TIdentifier; reference: PUInt32);
   var
     symbol: PUnknownSymbol;
   begin
@@ -111,7 +112,7 @@ implementation
     getUnknownCount := _unknown^.getCount;
   end;
 
-  function TSymbols.getFirstUnknownName: TString30;
+  function TSymbols.getFirstUnknownName: TIdentifier;
   var
     UnknownSymbol: PUnknownSymbol;
   begin
@@ -122,7 +123,7 @@ implementation
       getFirstUnknownName := '';
   end;
 
-  procedure TSymbols.replaceUnknown(const name: TString30; value: TUInt32);
+  procedure TSymbols.replaceUnknown(const name: TIdentifier; value: TUInt32);
   var
     symbol: PUnknownSymbol;
   begin

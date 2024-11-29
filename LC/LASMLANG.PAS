@@ -5,11 +5,14 @@ unit
   lasmlang;
 
 interface
-
+  
   uses
     consts, utils, uclasses, types, locale,
     uobject, uexc, ulist,
-    lcbase, lasmtknz;
+    lcommon, lliteral, lcbase, lsymbols, lasmtknz;
+
+  const
+    C_MSG_FOUND_KNOWN_SYMBOL = $BB;
 
   type
     EParseResult = (
@@ -42,6 +45,12 @@ interface
 
 implementation
 
+  const
+    C_KEYWORD_DATA_SECTION = '.data';
+    C_KEYWORD_CODE_SECTION = '.code';
+    C_KEYWORD_DEFINITION_DECLARATION = 'let';
+    C_KEYWORD_VARIABLE_DECLARATION = 'var';
+
   { TLanguage public }
 
   constructor TLanguage.initWithTokens(tokens: PList);
@@ -62,7 +71,7 @@ implementation
   var 
     result: EParseResult;
   begin    
-    if token = '.data' then
+    if token = C_KEYWORD_DATA_SECTION then
     begin
       next;
       result := parseDataBlock;
@@ -76,7 +85,7 @@ implementation
       exit;
     end;
 
-    if token = '.code' then
+    if token = C_KEYWORD_CODE_SECTION then
     begin
       next;
       result := parseCodeBlock;
@@ -201,8 +210,14 @@ implementation
   end;
 
   function TLanguage.parseDefinitionItem: EParseResult;
+  var
+    isValidNumber: boolean;
+    identifier: TIdentifier;
+    value: TUInt32;
+    symbol: PSymbol;
   begin
-    if not isValidIdentifier(token) then 
+    identifier := token;
+    if not isValidIdentifier(identifier) then 
     begin
       writeln('expected valid identifier, got "', token , '"');
       parseDefinitionItem := EParseFatalError;
@@ -216,19 +231,33 @@ implementation
       exit;
     end;
     next;
-    if not isValidNumericLiteral(token) then
+    isValidNumber := any2int(token, value);
+    if not isValidNumber then
     begin
       writeln('expected a numeric literal, got ', token, ' ');
       parseDefinitionItem := EParseFatalError;
       exit;
     end;
     next;
+
+    { we found a symbol, we notify the parser }
+    symbol := new(PSymbol, init);
+    symbol^.name := identifier;
+    symbol^.value := value;
+    sendMessageWithData(
+      C_MSG_FOUND_KNOWN_SYMBOL,
+      getDelegate,
+      symbol,
+      0
+    );
+    symbol^.release;
+
     parseDefinitionItem := EParseSuccessful;
   end;
 
   function TLanguage.parseDefinitionDeclaration: EParseResult;
   begin
-    if token <> 'let' then 
+    if token <> C_KEYWORD_DEFINITION_DECLARATION then 
     begin
       parseDefinitionDeclaration := EParseUnsuccessful;
       exit;
@@ -285,7 +314,7 @@ implementation
 
   function TLanguage.parseVariableDeclaration: EParseResult;
   begin
-    if token <> 'var' then 
+    if token <> C_KEYWORD_VARIABLE_DECLARATION then 
     begin
     parseVariableDeclaration := EParseUnsuccessful;
     exit;
@@ -365,7 +394,6 @@ implementation
       end;
     end;
     writeln;
-    { sendMessageWithData(C_MSG_ON_PARSED_SENTENCE, getDelegate, @sentence, sizeof(TSentence)); }
   end;
 
 end.

@@ -75,12 +75,6 @@ interface
       args: array[0..1] of TSentenceArgument;
     end;
 
-    PSymbol = ^TSymbol;
-    TSymbol = object (TObject)
-      name: TIdentifier;
-      value: TUInt32;
-    end;
-
   const
     C_MSG_ON_PARSED_SENTENCE = $F0;
 
@@ -160,9 +154,8 @@ interface
   function getOpcodeInfoByName(const name: TOperationName; var code, count: byte): boolean;
   function getRegisterInfoByName(const name:TRegisterName; var code, bitSize: byte): boolean;
   function isValidRegister(const str: string): boolean;
-  function isValidIdentifier(const str: string): boolean;
+  function isValidIdentifier(const str: TIdentifier): boolean;
   function isValidVariableType(const str: string): boolean;
-  function isValidNumericLiteral(const str: string): boolean;
   function isValidLiteral(const str: string): boolean;
   function isValidOpcode(const value: string): boolean;
   function getParameterType(const str: string): EParameterType;
@@ -220,7 +213,7 @@ implementation
     isValidRegister := i<C_REGISTER_COUNT;
   end;
 
-  function isValidIdentifier(const str: string): boolean;
+  function isValidIdentifier(const str: TIdentifier): boolean;
   const
     C_VALID_IDENTIFIER_CHARS = ['A'..'Z','a'..'z','_'];
   var
@@ -249,18 +242,13 @@ implementation
     isValidVariableType := i < C_TYPES_COUNT;
   end;
 
-  function isValidNumericLiteral(const str: string): boolean;
+  function isValidLiteral(const str: string): boolean;
   var
     value: TUInt32;
   begin
-    isValidNumericLiteral := any2int(str, value);
-  end;
-
-  function isValidLiteral(const str: string): boolean;
-  begin
     isValidLiteral := 
       ( (str[1] = '''') and (str[length(str)]='''') ) or
-      isValidNumericLiteral(str);
+      any2int(str, value);
   end;
 
   function isValidOpcode(const value: string): boolean;
