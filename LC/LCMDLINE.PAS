@@ -21,7 +21,7 @@ interface
   const cmdline: TCommandLine = (
     srcPath: '\examples\hello3.il';
     srcType: 'il';
-    dstPath: '\examples\hello3.gen';
+    dstPath: '\examples\hello3.bin';
     dstType: 'bin';
     dataMaxSize: 4096;
     verbose: true

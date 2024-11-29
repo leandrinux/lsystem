@@ -16,10 +16,10 @@ interface
     PCodeWriter = ^TCodeWriter;
     TCodeWriter = object (TObject)
     public
-      constructor initWithTarget(target: PStream);
+      constructor init;
       destructor done; virtual;
+      procedure setTarget(target: PStream);
       function getTarget: PStream;
-      procedure onFileCreated; virtual;
       procedure onParsedSentence(const sentence: TSentence); virtual;
       procedure receiveMessage(msg: PObjectMessage); virtual;
     private
@@ -30,18 +30,23 @@ implementation
 
   { TCodeWriter public }
 
-  constructor TCodeWriter.initWithTarget(target: PStream);
+  constructor TCodeWriter.init;
   begin
     inherited init;
-    _target := target;
-    _target^.retain;
-    onFileCreated;
+    _target := nil;
   end;
 
   destructor TCodeWriter.done;
   begin
-    _target^.release;
+    if _target <> nil then _target^.release;
     inherited done;
+  end;
+
+  procedure TCodeWriter.setTarget(target: PStream);
+  begin
+    if _target <> nil then _target^.release;
+    _target := target;
+    _target^.retain;
   end;
 
   function TCodeWriter.getTarget: PStream;
@@ -49,10 +54,6 @@ implementation
     getTarget := _target;
   end;
   
-  procedure TCodeWriter.onFileCreated;
-  begin
-  end;
-
   procedure TCodeWriter.onParsedSentence(const sentence: TSentence);
   begin
   end;

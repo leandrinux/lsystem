@@ -10,12 +10,29 @@ var
   builder: PBuilder;  
 begin
   builder := new(PBuilder, init);
-  msg(EMsgGood, 'Building %0', cmdline.srcPath);
-  builder^.setSource(cmdline.srcPath, cmdline.srcType);
-  builder^.setTarget(cmdline.dstPath, cmdline.dstType);
-  builder^.setDataMaxSize(cmdline.dataMaxSize);
-  builder^.setVerbose(cmdline.verbose);
-  builder^.run;
+  with cmdline do
+  begin
+    if srcType = 'il' then
+      builder^.setInputLanguage(ELanguageIL)
+    else if srcType = 'asm' then
+      builder^.setInputLanguage(ELanguageAssembly)
+    else begin
+      msg(EMsgFatal, 'Unsupported input language ""', srcType);
+      exit;
+    end;
+
+    if dstType = 'bin' then
+      builder^.setOutputLanguage(ELanguageBinary)
+    else begin
+      msg(EMsgFatal, 'Unsupported output language ""', dstType);
+      exit;
+    end;
+
+    builder^.setVerbose(verbose);
+
+    msg(EMsgGood, 'Building %0', srcPath);    
+    builder^.runWithPath(srcPath);
+  end;
   builder^.release;
 end;
 

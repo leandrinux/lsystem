@@ -9,29 +9,39 @@ interface
 
   uses
     consts, utils, uclasses, types, locale,
-    uobject, uexc, ufstream, umstream,
+    uobject, uexc, ustream, ufstream, umstream,
     lcommon, ltexts, 
     lparser, lilpars, lasmpars,
     lcwriter, lbinw;
 
   type
+    ELanguage = (
+      ELanguageBinary,
+      ELanguageIL,
+      ELanguageAssembly
+    );
+
     PBuilder = ^TBuilder;
     TBuilder = object (TObject)
     public
       constructor init;
       destructor done; virtual;
-      procedure setSource(const path, fileType: string);
-      procedure setTarget(const path, fileType: string);
-      procedure setDataMaxSize(maxSize: word);
+      procedure setInputLanguage(language: ELanguage);
+      procedure setOutputLanguage(language: ELanguage);
       procedure setVerbose(value: boolean);
-      procedure run;
+      procedure runWithStream(source: PStream);
+      procedure runWithPath(const path: string);
     private
       _parser: PParser;
-      _codeWriter: PCodeWriter;
       _verbose: boolean;
+      _codeWriter: PCodeWriter;
     end;
 
 implementation
+
+  const
+    C_DEFAULT_DATA_MAX_SIZE = 4096;
+    C_DEFAULT_CODE_MAX_SIZE = 4096;
 
   { TBuilder public }
 
@@ -50,33 +60,28 @@ implementation
     inherited done;
   end;
 
-  procedure TBuilder.setSource(const path, fileType: string);
-  var
-    fs: PFileStream;
+  procedure TBuilder.setInputLanguage(language: ELanguage);
   begin
     if _parser<>nil then _parser^.release;
-    if fileType = C_IL_PARSER_TYPE then 
-      _parser := new(PILParser, init)
-    else if fileType = C_ASM_PARSER_TYPE then
-      _parser := new(PAssemblyParser, init)
+    case language of 
+      ELanguageIL: 
+        _parser := new(PILParser, init);
+      ELanguageAssembly: 
+        _parser := new(PAssemblyParser, init);
     else
       msg(EMsgFatal, C_STR_UNKNOWN_SRC_TYPE, '');
-    fs := new(PFilestream, initWithPath(path, EFileReadOnly));
-    _parser^.setSource(fs);
-    fs^.release;
+      _parser := nil;
+    end;    
   end;
 
-  procedure TBuilder.setTarget(const path, fileType: string);
-  var
-    fs: PFileStream;
+  procedure TBuilder.setOutputLanguage(language: ELanguage);
   begin
-    fs := new(PFilestream, initWithPath(path, EFileCreate));
-    if _codeWriter<>nil then _codeWriter^.release;
-    if fileType = C_BIN_WRITER_TYPE then 
-      _codeWriter := new(PBinaryWriter, initWithTarget(fs))
+    case language of
+      ELanguageBinary: 
+        _codeWriter := new(PBinaryWriter, init)
     else
       msg(EMsgFatal, C_STR_UNKNOWN_DST_TYPE, '');
-    fs^.release;
+    end;
   end;
 
   procedure TBuilder.setVerbose(value: boolean);
@@ -84,21 +89,41 @@ implementation
     _verbose := value;
   end;
 
-  procedure TBuilder.setDataMaxSize(maxSize: word);
+  procedure TBuilder.runWithStream(source: PStream);
   var
-    ms: PMemoryStream;
+    data: PMemoryStream;
+    code: PMemoryStream;
   begin
-    if _parser = nil then exit;
-    ms := new(PMemoryStream, initWithSize(maxSize));
-    _parser^.setData(ms);
-    ms^.release;
-  end;
+    if _parser = nil then
+    begin
+      writeln('Can''t run, parser not set');
+      exit;
+    end;
 
-  procedure TBuilder.run;
-  begin
+    _parser^.setSource(source);
     _parser^.setVerbose(_verbose);
     _parser^.setDelegate(_codeWriter);
+
+    data := new(PMemoryStream, initWithSize(C_DEFAULT_DATA_MAX_SIZE));
+    _parser^.setData(data);
+
+    code := new(PMemoryStream, initWithSize(C_DEFAULT_CODE_MAX_SIZE));
+    _codeWriter^.setTarget(code);
+
     _parser^.run;
+
+    msg(EMsgGood, 'Build completed. code %0 bytes, data %1 bytes', intToStr(data^.getSize) + #0 + intToStr(code^.getSize));
+    data^.release;
+    code^.release;
+  end;
+
+  procedure TBuilder.runWithPath(const path: string);
+  var
+    fs: PFileStream;
+  begin
+    fs := new(PFilestream, initWithPath(path, EFileReadOnly));
+    runWithStream(fs);
+    fs^.release;
   end;
 
   { TBuilder private }

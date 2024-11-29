@@ -86,8 +86,6 @@ implementation
           if ln = '.code' then
           begin
             state := EStateCode;
-            if getData <> nil then 
-              msg('Final data size is ' + intToStr(getData^.getSize));
             msg('Compiling code...');
           end else
             readDataBytes(ln);
@@ -101,7 +99,7 @@ implementation
 
       end;
     end;
-    msg('Parsing ended.');
+    msg('Parsing ended.');      
   end;
 
   { TILParser private }

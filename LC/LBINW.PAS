@@ -19,7 +19,6 @@ interface
     PBinaryWriter = ^TBinaryWriter;
     TBinaryWriter = object (TCodeWriter)
     public
-      procedure onFileCreated; virtual;
       procedure onParsedSentence(const sentence: TSentence); virtual;
     private
     end;
@@ -28,6 +27,7 @@ implementation
 
   { TBinaryWriter public }
 
+{
   procedure TBinaryWriter.onFileCreated;
   var
     header: TBinaryFileHeader;
@@ -36,6 +36,7 @@ implementation
     header.signature := C_BINARY_SIGNATURE;
     getTarget^.write(@header, sizeOf(TBinaryFileHeader));
   end;
+}
 
   procedure TBinaryWriter.onParsedSentence(const sentence: TSentence);
   var
@@ -67,12 +68,6 @@ implementation
       data[8] := (value shr 16) and $FF;
       data[9] := (value shr 24) and $FF;
 
-      {
-      write('BinaryWriter: ', opname, '(', byteToHex(opcode), ') '); 
-      write(C_PARAMETER_TYPES[args[0].argType], ', ', C_PARAMETER_TYPES[args[1].argType], ' ');
-      write(longToHex(args[0].value), ', ', longToHex(args[1].value));
-      writeln;
-      }
       stream^.write(@data, sizeof(data));
     end;
   end;
