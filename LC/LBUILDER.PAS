@@ -11,7 +11,7 @@ interface
     consts, utils, uclasses, types, locale,
     uobject, uexc, ustream, ufstream, umstream,
     lcommon, ltexts, 
-    lparser, lilpars, lasmpars, lcwriter;
+    lparser, lilpars, lasmpars, lwriter, lsymbols;
 
   type
     ELanguage = (
@@ -73,20 +73,23 @@ implementation
   procedure TBuilder.runWithStreams(source: PStream; target: PStream);
   var
     writer: PWriter;
+    symbols: PSymbols;
   begin
     if _parser = nil then
     begin
       writeln('Can''t run, parser not set');
       exit;
     end;
-
     writer := new(PWriter, init);
+    symbols := new(PSymbols, init);
     _parser^.setSource(source);
+    _parser^.setWriter(writer);
+    _parser^.setSymbols(symbols);
     _parser^.setVerbose(_verbose);
-    _parser^.setWriter(Writer);
     _parser^.run;
     writer^.save(target);
     writer^.release;
+    symbols^.release;
     msg(EMsgGood, 'Build succeeded', #0);
   end;
 

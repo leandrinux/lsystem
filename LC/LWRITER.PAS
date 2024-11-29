@@ -3,7 +3,7 @@
   2024 LRT
 }
 unit
-  lcwriter;
+  lwriter;
 
 interface
 

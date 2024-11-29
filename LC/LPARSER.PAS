@@ -9,7 +9,8 @@ interface
 
   uses
     consts, utils, uclasses, types, locale,
-    uobject, uexc, ustream, lcommon, lcbase, lcwriter;   
+    uobject, uexc, ustream, 
+    lcommon, lcbase, lwriter, lsymbols;
     
   type
     PParser = ^TParser;
@@ -21,6 +22,8 @@ interface
       function getSource: PStream;
       procedure setWriter(writer: PWriter);
       function getWriter: PWriter;
+      procedure setSymbols(symbols: PSymbols);
+      function getSymbols: PSymbols;
       procedure setVerbose(value: boolean);
       procedure msg(const str: string);
       procedure run; virtual;
@@ -28,6 +31,7 @@ interface
       _source: PStream;
       _verbose: boolean;
       _writer: PWriter;
+      _symbols: PSymbols;
     end;
 
 implementation
@@ -39,6 +43,7 @@ implementation
     inherited init;
     _source := nil;
     _writer := nil;
+    _symbols := nil;
     _verbose := false;
   end;
 
@@ -46,6 +51,7 @@ implementation
   begin
     if _source <> nil then _source^.release;
     if _writer <> nil then _writer^.release;
+    if _symbols <> nil then _symbols^.release;
     inherited done;
   end;
 
@@ -71,6 +77,18 @@ implementation
   function TParser.getWriter: PWriter;
   begin
     getWriter := _writer;
+  end;
+
+  procedure TParser.setSymbols(symbols: PSymbols);
+  begin
+    if _symbols<>nil then _symbols^.release;
+    _symbols := symbols;
+    _symbols^.retain;
+  end;
+
+  function TParser.getSymbols: PSymbols;
+  begin
+    getSymbols := _symbols;
   end;
 
   procedure TParser.setVerbose(value: boolean);
