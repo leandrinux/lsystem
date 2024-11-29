@@ -13,8 +13,6 @@ interface
       srcPath: TFilePath;
       srcType: TFileType;
       dstPath: TFilePath;
-      dstType: TFileType;
-      dataMaxSize: word;
       verbose: boolean;
     end;
 
@@ -22,8 +20,6 @@ interface
     srcPath: '\examples\hello3.il';
     srcType: 'il';
     dstPath: '\examples\hello3.bin';
-    dstType: 'bin';
-    dataMaxSize: 4096;
     verbose: true
   );
 

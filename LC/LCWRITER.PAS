@@ -9,8 +9,8 @@ interface
 
   uses
     consts, utils, uclasses, types, locale,
-    uobject, uexc, ustream,
-    lparser, lcbase;  
+    uobject, uexc, ustream, umstream,
+    lcommon, lcbase;  
 
   type
     PCodeWriter = ^TCodeWriter;
@@ -18,50 +18,76 @@ interface
     public
       constructor init;
       destructor done; virtual;
-      procedure setTarget(target: PStream);
-      function getTarget: PStream;
-      procedure onParsedSentence(const sentence: TSentence); virtual;
-      procedure receiveMessage(msg: PObjectMessage); virtual;
+      procedure onSentence(const sentence: TSentence); 
+      procedure onData(data: pointer; size: longint);
+      procedure save(output: PStream);
     private
-      _target: PStream;
+      _code: PStream;
+      _data: PStream;
     end;
 
 implementation
+
+  const
+    C_DEFAULT_CODE_MAX_SIZE = 4096;
+    C_DEFAULT_DATA_MAX_SIZE = 4096;
 
   { TCodeWriter public }
 
   constructor TCodeWriter.init;
   begin
     inherited init;
-    _target := nil;
+    _code := new(PMemoryStream, initWithSize(C_DEFAULT_CODE_MAX_SIZE));
+    _data := new(PMemoryStream, initWithSize(C_DEFAULT_DATA_MAX_SIZE));
   end;
 
   destructor TCodeWriter.done;
   begin
-    if _target <> nil then _target^.release;
+    _code^.release;
+    _data^.release;
     inherited done;
   end;
-
-  procedure TCodeWriter.setTarget(target: PStream);
-  begin
-    if _target <> nil then _target^.release;
-    _target := target;
-    _target^.retain;
-  end;
-
-  function TCodeWriter.getTarget: PStream;
-  begin
-    getTarget := _target;
-  end;
   
-  procedure TCodeWriter.onParsedSentence(const sentence: TSentence);
+  procedure TCodeWriter.onSentence(const sentence: TSentence);
+  var
+    data: array[0..9] of byte;
+    value: TUInt32;
   begin
+    with sentence do
+    begin
+
+      { opcode }
+      data[0] := opcode;
+
+      { parameter types }
+      data[1] := (byte(args[0].argType) shl 4) or byte(args[1].argType);
+
+      { first argument }
+      value := hexToLong(args[0].value);
+      data[2] := value and $FF;
+      data[3] := (value shr 8) and $FF;
+      data[4] := (value shr 16) and $FF;
+      data[5] := (value shr 24) and $FF;
+
+      { second argument }
+      value := hexToLong(args[1].value);
+      data[6] := value and $FF;
+      data[7] := (value shr 8) and $FF;
+      data[8] := (value shr 16) and $FF;
+      data[9] := (value shr 24) and $FF;
+
+      _code^.write(@data, sizeof(data));
+    end;
   end;
 
-  procedure TCodeWriter.receiveMessage(msg: PObjectMessage);
+  procedure TCodeWriter.onData(data: pointer; size: longint);
   begin
-    if msg^.opcode = C_MSG_ON_PARSED_SENTENCE then
-      onParsedSentence(PSentence(msg^.payload)^);
+    _data^.write(data, size);
+  end;
+
+  procedure TCodeWriter.save(output: PStream);
+  begin
+    writeln('todo: saving code and data to output stream');
   end;
 
   { TCodeWriter private }

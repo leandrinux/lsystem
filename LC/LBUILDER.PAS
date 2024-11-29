@@ -11,8 +11,7 @@ interface
     consts, utils, uclasses, types, locale,
     uobject, uexc, ustream, ufstream, umstream,
     lcommon, ltexts, 
-    lparser, lilpars, lasmpars,
-    lcwriter, lbinw;
+    lparser, lilpars, lasmpars, lcwriter;
 
   type
     ELanguage = (
@@ -27,21 +26,15 @@ interface
       constructor init;
       destructor done; virtual;
       procedure setInputLanguage(language: ELanguage);
-      procedure setOutputLanguage(language: ELanguage);
       procedure setVerbose(value: boolean);
-      procedure runWithStream(source: PStream);
-      procedure runWithPath(const path: string);
+      procedure runWithStreams(source: PStream; target: PStream);
+      procedure runWithPaths(const srcpath, dstPath: string);
     private
       _parser: PParser;
       _verbose: boolean;
-      _codeWriter: PCodeWriter;
     end;
 
 implementation
-
-  const
-    C_DEFAULT_DATA_MAX_SIZE = 4096;
-    C_DEFAULT_CODE_MAX_SIZE = 4096;
 
   { TBuilder public }
 
@@ -49,14 +42,12 @@ implementation
   begin
     inherited init;
     _parser := nil;
-    _codeWriter := nil;
     _verbose := false;
   end;
 
   destructor TBuilder.done;
   begin
     if _parser<>nil then _parser^.release;
-    if _codeWriter<>nil then _codeWriter^.release;
     inherited done;
   end;
 
@@ -74,25 +65,14 @@ implementation
     end;    
   end;
 
-  procedure TBuilder.setOutputLanguage(language: ELanguage);
-  begin
-    case language of
-      ELanguageBinary: 
-        _codeWriter := new(PBinaryWriter, init)
-    else
-      msg(EMsgFatal, C_STR_UNKNOWN_DST_TYPE, '');
-    end;
-  end;
-
   procedure TBuilder.setVerbose(value: boolean);
   begin
     _verbose := value;
   end;
 
-  procedure TBuilder.runWithStream(source: PStream);
+  procedure TBuilder.runWithStreams(source: PStream; target: PStream);
   var
-    data: PMemoryStream;
-    code: PMemoryStream;
+    codeWriter: PCodeWriter;
   begin
     if _parser = nil then
     begin
@@ -100,30 +80,24 @@ implementation
       exit;
     end;
 
+    codeWriter := new(PCodeWriter, init);
     _parser^.setSource(source);
     _parser^.setVerbose(_verbose);
-    _parser^.setDelegate(_codeWriter);
-
-    data := new(PMemoryStream, initWithSize(C_DEFAULT_DATA_MAX_SIZE));
-    _parser^.setData(data);
-
-    code := new(PMemoryStream, initWithSize(C_DEFAULT_CODE_MAX_SIZE));
-    _codeWriter^.setTarget(code);
-
+    _parser^.setWriter(codeWriter);
     _parser^.run;
-
-    msg(EMsgGood, 'Build completed. code %0 bytes, data %1 bytes', intToStr(data^.getSize) + #0 + intToStr(code^.getSize));
-    data^.release;
-    code^.release;
+    codeWriter^.save(target);
+    codeWriter^.release;
   end;
 
-  procedure TBuilder.runWithPath(const path: string);
+  procedure TBuilder.runWithPaths(const srcpath, dstPath: string);
   var
-    fs: PFileStream;
+    src, dst: PFileStream;
   begin
-    fs := new(PFilestream, initWithPath(path, EFileReadOnly));
-    runWithStream(fs);
-    fs^.release;
+    src := new(PFilestream, initWithPath(srcpath, EFileReadOnly));
+    dst := new(PFilestream, initWithPath(dstPath, EFileReadWrite));
+    runWithStreams(src, dst);
+    src^.release;
+    dst^.release;
   end;
 
   { TBuilder private }

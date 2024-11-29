@@ -9,7 +9,7 @@ interface
 
   uses
     consts, utils, uclasses, types, locale,
-    uobject, uexc, ustream, lcommon, lcbase;   
+    uobject, uexc, ustream, lcommon, lcbase, lcwriter;   
     
   type
     PParser = ^TParser;
@@ -19,15 +19,15 @@ interface
       destructor done; virtual;
       procedure setSource(source: PStream);
       function getSource: PStream;
-      procedure setData(data: PStream);
-      function getData: PStream;
+      procedure setWriter(writer: PCodeWriter);
+      function getWriter: PCodeWriter;
       procedure setVerbose(value: boolean);
       procedure msg(const str: string);
       procedure run; virtual;
     private
       _source: PStream;
-      _data: PStream;
       _verbose: boolean;
+      _writer: PCodeWriter;
     end;
 
 implementation
@@ -38,14 +38,14 @@ implementation
   begin
     inherited init;
     _source := nil;
-    _data := nil;
+    _writer := nil;
     _verbose := false;
   end;
 
   destructor TParser.done;
   begin
     if _source <> nil then _source^.release;
-    if _data <> nil then _data^.release;
+    if _writer <> nil then _writer^.release;
     inherited done;
   end;
 
@@ -61,16 +61,16 @@ implementation
     getSource := _source;
   end;
 
-  procedure TParser.setData(data: PStream);
+  procedure TParser.setWriter(writer: PCodeWriter);
   begin
-    if _data <> nil then _data^.release;
-    _data := data;
-    _data^.retain;
+    if _writer <> nil then _writer^.release;
+    _writer := writer;
+    _writer^.retain;
   end;
 
-  function TParser.getData: PStream;
+  function TParser.getWriter: PCodeWriter;
   begin
-    getData := _data;
+    getWriter := _writer;
   end;
 
   procedure TParser.setVerbose(value: boolean);

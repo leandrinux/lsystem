@@ -21,17 +21,10 @@ begin
       exit;
     end;
 
-    if dstType = 'bin' then
-      builder^.setOutputLanguage(ELanguageBinary)
-    else begin
-      msg(EMsgFatal, 'Unsupported output language ""', dstType);
-      exit;
-    end;
-
     builder^.setVerbose(verbose);
 
     msg(EMsgGood, 'Building %0', srcPath);    
-    builder^.runWithPath(srcPath);
+    builder^.runWithPaths(srcPath, dstPath);
   end;
   builder^.release;
 end;

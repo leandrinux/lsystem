@@ -25,7 +25,6 @@ interface
     private
       procedure readDataBytes(const line: string);
       function readSentence(const line: string; var sentence: TSentence): boolean;
-      procedure didParseSentence(sentence: PSentence);
     end;
 
 implementation
@@ -94,7 +93,7 @@ implementation
         EStateCode:
         begin
           if readSentence(ln, sentence) then 
-            didParseSentence(@sentence);
+            getWriter^.onSentence(sentence);
         end;
 
       end;
@@ -112,10 +111,6 @@ implementation
     token: string[2];
     value: byte;
   begin
-    if getData = nil then begin
-      msg('Skipping data line because data stream is not set');
-      exit;
-    end;
     i := 1;
     c := length(line);
     while (i <= c) and (line[i]<>';') do 
@@ -125,7 +120,7 @@ implementation
         begin
           token := line[i] + line[i+1];
           value := hexToByte(token);
-          getData^.write(@token, 1);
+          getWriter^.onData(@token, 1);
         end;
       inc(i);
     end; 
@@ -180,11 +175,6 @@ implementation
     sentence.args[1].value := longToHex(longValue);
 
     readSentence := true;
-  end;
-
-  procedure TILParser.didParseSentence(sentence: PSentence);
-  begin
-    sendMessageWithData(C_MSG_ON_PARSED_SENTENCE, getDelegate, sentence, sizeof(TSentence));
   end;
 
   { Other }
