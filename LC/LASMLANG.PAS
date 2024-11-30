@@ -132,63 +132,76 @@ implementation
     success: boolean;
     sentence: TSentence;
   begin
-    fillchar(sentence, sizeof(sentence), 0);
     parseSentence := EParseUnsuccessful;
+    fillchar(sentence, sizeof(TSentence), 0);
+
+    if token = '' then exit;
+    
+    { check for label at beginning of sentence }
     if lookAhead = ':' then
     begin
       sentence.labelName := token;
-      next; 
-      next;
+      next; { skips label name } 
+      next; { skips colon } 
     end;
+
+    { check for the opname to be correct } 
     sentence.opname := token; 
     with sentence do success := getOpcodeInfoByName(opname, opcode, argCount);
-
-    if success then
+    if not success then
     begin
-      next;
-      case sentence.argCount of
-        0: parseSentence := EParseSuccessful;
-        1: begin
-          sentence.args[0].value := token;
-          sentence.args[0].argType := getParameterType(token);
-          if sentence.args[0].argType <> EParameterTypeUnknown then 
-          begin
-            next;
-            parseSentence := EParseSuccessful;
-          end else
-            writeln('expected first argument');
-        end;
-        2: begin
-          sentence.args[0].value := token;
-          sentence.args[0].argType := getParameterType(token);
-          if sentence.args[0].argType <> EParameterTypeUnknown then 
-          begin
-            next;
-            if token = ',' then
-            begin
-            next;
-            sentence.args[1].value := token;
-            sentence.args[1].argType := getParameterType(token);
-            if sentence.args[1].argType <> EParameterTypeUnknown then 
-            begin
-              next;
-              parseSentence := EParseSuccessful;
-            end else begin
-              writeln('expected second argument');
-              parseSentence := EParseFatalError;
-            end;
-            end else begin
-            writeln('expected ,');
-            parseSentence := EParseFatalError;
-            end;
-          end else begin
-            writeln('expected first argument');
-            parseSentence := EParseFatalError;
-          end;
-        end;
-      end;
-      didParseSentence(sentence);
+      writeln('Found invalid operation "', sentence.opname, '"');
+      parseSentence := EParseFatalError;
+      exit;
     end;
+    next;
+
+    { if no arguments then we're done }
+    if sentence.argCount = 0 then
+    begin
+      parseSentence := EParseSuccessful;
+      didParseSentence(sentence);
+      exit;
+    end;
+
+    { check first argument }
+    sentence.args[0].value := token;
+    sentence.args[0].argType := getParameterType(token);
+    if sentence.args[0].argType = EParameterTypeUnknown then 
+    begin
+      writeln('expected first argument');
+      parseSentence := EParseFatalError;
+      exit;
+    end;  
+
+    if sentence.argCount = 1 then
+    begin
+      parseSentence := EParseSuccessful;
+      didParseSentence(sentence);
+      next;
+      exit;
+    end;
+
+    next;
+    if token <> ',' then
+    begin
+      writeln('expected comma, got ', token);
+      parseSentence := EParseFatalError;
+      exit;
+    end;
+
+    next;
+    sentence.args[1].value := token;
+    sentence.args[1].argType := getParameterType(token);
+    if sentence.args[1].argType = EParameterTypeUnknown then 
+    begin
+      writeln('expected second argument');
+      parseSentence := EParseFatalError;
+      exit;
+    end;
+    next;
+    parseSentence := EParseSuccessful;
+    didParseSentence(sentence);
   end;
 
   function TLanguage.parseCodeBlock: EParseResult;
@@ -377,26 +390,6 @@ implementation
 
   procedure TLanguage.didParseSentence(var sentence: TSentence);
   begin
-  {
-    with sentence do
-    begin
-      if length(labelName)>0 then write('label: "', labelName, '", ');
-      write('op: ', opname);
-      write('(', byteToHex(opcode), '), ');
-      write('args: ', argCount, ', ');
-      if argCount>0 then
-      begin
-        write('arg0: "', args[0].value , '"');
-        write('(', ord(args[0].argType), ')');
-      end;
-      if argCount>1 then
-      begin
-        write(', arg1: "', args[1].value , '"');
-        write('(', ord(args[1].argType), ')');
-      end;
-    end;
-    writeln;
-  }
     sendMessageWithData(C_MSG_ADD_NEW_SENTENCE, getDelegate, @sentence, 0);
   end;
 

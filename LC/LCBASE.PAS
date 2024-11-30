@@ -59,11 +59,9 @@ interface
     end;
 
     TSentenceArgument = record
-      argType: EParameterType;  { what kind of argument this is }
-      { value: if it's a literal or a memory address, this is it }
-      { if it's a pointer or a register this is its register code }
-      { if it's a pointer this is its 16-bit offset constant }
-      value: TArgumentValue;        
+      argType: EParameterType;
+      labelName: TIdentifier; 
+      value: TArgumentValue;
     end;
 
     PSentence = ^TSentence;

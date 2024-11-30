@@ -65,13 +65,16 @@ implementation
       data[1] := (byte(args[0].argType) shl 4) or byte(args[1].argType);
 
       { first argument }
+      writeln('arg[0]: ', args[0].value);
       value := hexToLong(args[0].value);
+
       data[2] := value and $FF;
       data[3] := (value shr 8) and $FF;
       data[4] := (value shr 16) and $FF;
       data[5] := (value shr 24) and $FF;
 
       { second argument }
+      writeln('arg[1]: ', args[1].value);
       value := hexToLong(args[1].value);
       data[6] := value and $FF;
       data[7] := (value shr 8) and $FF;
@@ -79,6 +82,7 @@ implementation
       data[9] := (value shr 24) and $FF;
 
       _code^.write(@data, sizeof(data));
+      writeln;
     end;
   end;
 
