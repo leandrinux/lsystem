@@ -12,7 +12,8 @@ interface
     lcommon, lliteral, lcbase, lsymbols, lasmtknz;
 
   const
-    C_MSG_FOUND_KNOWN_SYMBOL = $BB;
+    C_MSG_FOUND_KNOWN_SYMBOL = $BA;
+    C_MSG_ADD_NEW_SENTENCE   = $BB;
 
   type
     EParseResult = (
@@ -376,6 +377,7 @@ implementation
 
   procedure TLanguage.didParseSentence(var sentence: TSentence);
   begin
+  {
     with sentence do
     begin
       if length(labelName)>0 then write('label: "', labelName, '", ');
@@ -394,6 +396,8 @@ implementation
       end;
     end;
     writeln;
+  }
+    sendMessageWithData(C_MSG_ADD_NEW_SENTENCE, getDelegate, @sentence, 0);
   end;
 
 end.

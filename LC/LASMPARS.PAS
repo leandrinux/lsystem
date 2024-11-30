@@ -9,7 +9,7 @@ interface
   uses
     consts, utils, uclasses, types, locale,
     uobject, uexc, ustream, ufstream, ulist, ustring,
-    lcommon, lparser, lasmtknz, lasmlang, lsymbols;
+    lcommon, lcbase, lparser, lasmtknz, lasmlang, lsymbols;
 
   const 
     C_ASM_PARSER_TYPE = 'asm';
@@ -24,6 +24,7 @@ interface
       procedure receiveMessage(message: PObjectMessage); virtual;
     private
       procedure onFoundKnownSymbol(symbol: PSymbol);
+      procedure onNewSentence(sentence: PSentence);
     end;
 
 implementation
@@ -68,7 +69,9 @@ implementation
   procedure TAssemblyParser.receiveMessage(message: PObjectMessage);
   begin
     if message^.opcode = C_MSG_FOUND_KNOWN_SYMBOL then 
-      onFoundKnownSymbol(PSymbol(message^.payload));
+      onFoundKnownSymbol(PSymbol(message^.payload))
+    else if message^.opcode = C_MSG_ADD_NEW_SENTENCE then 
+      onNewSentence(PSentence(message^.payload));
   end;
 
   { TAssemblyParser private }
@@ -76,6 +79,21 @@ implementation
   procedure TAssemblyParser.onFoundKnownSymbol(symbol: PSymbol);
   begin
     getSymbols^.addSymbol(symbol);
+  end;
+
+  procedure TAssemblyParser.onNewSentence(sentence: PSentence);
+  var
+    symbol: PSymbol;
+  begin
+    if sentence^.labelName <> '' then
+    begin
+      symbol := new(PSymbol, init);
+      symbol^.name := sentence^.labelName;
+      symbol^.value := getWriter^.getCodeSize;
+      getSymbols^.addSymbol(symbol);
+      symbol^.release;
+    end;
+    getWriter^.onSentence(sentence^);
   end;
 
   { Other }

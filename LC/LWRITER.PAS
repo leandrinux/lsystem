@@ -21,6 +21,8 @@ interface
       procedure onSentence(const sentence: TSentence); 
       procedure onData(data: pointer; size: longint);
       procedure save(output: PStream);
+      function getCodeSize: longint;
+      function getDataSize: longint;
     private
       _code: PStream;
       _data: PStream;
@@ -106,6 +108,16 @@ implementation
 
     writeln('Saving code ', _code^.getSize, ' bytes');
     _code^.copyAllTo(output);
+  end;
+
+  function TWriter.getCodeSize: longint;
+  begin
+    getCodeSize := _code^.getSize;
+  end;
+
+  function TWriter.getDataSize: longint;
+  begin
+    getDataSize := _data^.getSize;
   end;
 
   { TWriter private }

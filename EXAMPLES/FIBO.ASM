@@ -3,7 +3,7 @@
 
 .data 
   
-  def C_CR = $D, C_LF = 0xA
+  let C_CR = $D, C_LF = 0xA
 
 .code
 
