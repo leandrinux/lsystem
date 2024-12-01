@@ -17,9 +17,9 @@ interface
     end;
 
   const cmdline: TCommandLine = (
-    srcPath: '\examples\fibo.asm';
-    srcType: 'asm';
-    dstPath: '\examples\fibo.bin';
+    srcPath: '\examples\fibo.il';
+    srcType: 'il';
+    dstPath: '\examples\fiboil.bin';
     verbose: true
   );
 
