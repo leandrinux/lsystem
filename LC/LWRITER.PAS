@@ -78,6 +78,11 @@ implementation
   var
     header: TBinaryFileHeader;
   begin
+    if not _symbols^.replacePendingSymbols(_code) then
+    begin
+      msg(EMsgFatal, 'Build failed due to undefined symbols', #0);
+      exit;
+    end;
     with header do
     begin
       signature := C_BINARY_SIGNATURE;
@@ -87,13 +92,8 @@ implementation
       codeOffset := dataOffset + dataSize;
       codeSize := _code^.getSize;
     end;
-    writeln('Saving header ', sizeof(TBinaryFileHeader), ' bytes');
     output^.write(@header, sizeof(TBinaryFileHeader));
-
-    writeln('Saving data ', _data^.getSize, ' bytes');
     _data^.copyAllTo(output);
-
-    writeln('Saving code ', _code^.getSize, ' bytes');
     _code^.copyAllTo(output);
   end;
 

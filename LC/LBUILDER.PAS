@@ -91,13 +91,8 @@ implementation
     _parser^.setVerbose(_verbose);
     _parser^.run;
 
-    if not symbols^.replacePendingSymbols(target) then
-    begin
-      msg(EMsgFatal, 'Build failed due to undefined symbols', #0);
-    end else begin
-      writer^.save(target);
-      msg(EMsgGood, 'Build succeeded', #0);
-    end;
+    writer^.save(target);
+    msg(EMsgGood, 'Build succeeded', #0);
 
     writer^.release;
     symbols^.release;
