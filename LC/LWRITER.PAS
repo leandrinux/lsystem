@@ -28,7 +28,7 @@ interface
       _code: PStream;
       _data: PStream;
       _symbols: PSymbols;
-      function getArgumentValue(arg: TSentenceArgument): TUInt32;
+      function getArgumentValue(arg: TSentenceArgument; argOffset: TUInt32): TUInt32;
     end;
 
 implementation
@@ -57,36 +57,15 @@ implementation
   
   procedure TWriter.onSentence(const sentence: TSentence);
   var
-    data: array[0..9] of byte;
-    value: TUInt32;
+    inst: TInstruction;
   begin
     with sentence do
     begin
-      { opcode }
-      data[0] := opcode;
-
-      { parameter types }
-      data[1] := (byte(args[0].argType) shl 4) or byte(args[1].argType);
-
-      { first argument }
-      {writeln('arg[0]: ', args[0].value);}
-      {value := hexToLong(args[0].value);}
-      value := getArgumentValue(args[0]);
-      data[2] := value and $FF;
-      data[3] := (value shr 8) and $FF;
-      data[4] := (value shr 16) and $FF;
-      data[5] := (value shr 24) and $FF;
-
-      { second argument }
-      {writeln('arg[1]: ', args[1].value);}
-      {value := hexToLong(args[1].value);}
-      value := getArgumentValue(args[1]);
-      data[6] := value and $FF;
-      data[7] := (value shr 8) and $FF;
-      data[8] := (value shr 16) and $FF;
-      data[9] := (value shr 24) and $FF;
-
-      _code^.write(@data, sizeof(data));
+      inst.header.opcode := opcode;
+      inst.header.params := (byte(args[0].argType) shl 4) or byte(args[1].argType);
+      inst.param0 := getArgumentValue(args[0], _code^.getPosition + 2);
+      inst.param1 := getArgumentValue(args[1], _code^.getPosition + 6);
+      _code^.write(@inst, sizeof(TInstruction));
     end;
   end;
 
@@ -137,7 +116,7 @@ implementation
 
   { TWriter private }
 
-  function TWriter.getArgumentValue(arg: TSentenceArgument): TUInt32;
+  function TWriter.getArgumentValue(arg: TSentenceArgument; argOffset: TUInt32): TUInt32;
   var
     resultValue: TUInt32;
     code, bitSize: byte;
@@ -162,7 +141,7 @@ implementation
         success := _symbols^.getValue(arg.value, resultValue);
         if not success then 
         begin
-          writeln('Symbol "', arg.value, '" not defined yet');
+          _symbols^.addUnknownValue(arg.value, argOffset);
           resultValue := 0;
         end;
       end;

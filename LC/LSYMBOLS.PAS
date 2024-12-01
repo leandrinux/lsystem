@@ -8,8 +8,8 @@ interface
 
   uses
     consts, utils, uclasses, types, locale, strings,
-    uobject, uexc, ulist, ltexts,
-    lcommon, lcbase;
+    uobject, uexc, ulist, ustream,
+    ltexts, lcommon, lcbase;
 
   type
     PSymbol = ^TSymbol;
@@ -21,7 +21,7 @@ interface
     PUnknownSymbol = ^TUnknownSymbol;
     TUnknownSymbol = object (TObject)
       name: TIdentifier;
-      reference: PUInt32;
+      offset: TUInt32;
     end;
 
     PSymbols = ^TSymbols;
@@ -30,14 +30,12 @@ interface
       constructor init;
       destructor done; virtual;
       procedure addSymbol(symbol: PSymbol);
-      procedure addUnknownValue(const name: TIdentifier; reference: PUInt32);
+      procedure addUnknownValue(const name: TIdentifier; offset: TUInt32);
       function getValue(const name: TIdentifier; var value: TUInt32): boolean;
-      function getUnknownCount: word;
-      function getFirstUnknownName: TIdentifier;
+      function replacePendingSymbols(stream: PStream): boolean;
     private
       _known: PList;
       _unknown: PList;
-      procedure replaceUnknown(const name: TIdentifier; value: TUInt32);
     end;
 
 implementation
@@ -62,7 +60,6 @@ implementation
   begin
     {writeln('Add symbol ', symbol^.name, ', value: ', symbol^.value);}
     _known^.addObject(symbol);
-    replaceUnknown(symbol^.name, symbol^.value);
   end;
 
   function TSymbols.getValue(const name: TIdentifier; var value: TUInt32): boolean;
@@ -86,59 +83,40 @@ implementation
     end;
   end;
 
-  procedure TSymbols.addUnknownValue(const name: TIdentifier; reference: PUInt32);
+  procedure TSymbols.addUnknownValue(const name: TIdentifier; offset: TUInt32);
   var
     symbol: PUnknownSymbol;
   begin
     symbol := new(PUnknownSymbol, init);
     symbol^.name := name;
-    symbol^.reference := reference;
+    symbol^.offset := offset;
     _unknown^.addObject(symbol);
     symbol^.release;
   end;
 
-  function TSymbols.getUnknownCount: word;
-  var
+  function TSymbols.replacePendingSymbols(stream: PStream): boolean;
+  var 
     symbol: PUnknownSymbol;
+    value: TUInt32;
+    success: boolean;
   begin
     _unknown^.moveToStart;
     symbol := PUnknownSymbol(_unknown^.getObjectAtCursor);
     while symbol <> nil do
     begin
+      success := getValue(symbol^.name, value);
+      if not success then
+      begin
+        writeln('Symbol "', symbol^.name, '" is undefined');
+        replacePendingSymbols := false;
+        exit;
+      end;
+      stream^.seek(symbol^.offset);
+      stream^.write(@value, sizeOf(value));
       _unknown^.moveForward;
       symbol := PUnknownSymbol(_unknown^.getObjectAtCursor);
     end;
-
-    getUnknownCount := _unknown^.getCount;
-  end;
-
-  function TSymbols.getFirstUnknownName: TIdentifier;
-  var
-    UnknownSymbol: PUnknownSymbol;
-  begin
-    UnknownSymbol := PUnknownSymbol(_unknown^.getFirst);
-    if UnknownSymbol <> nil then 
-      getFirstUnknownName := UnknownSymbol^.name
-    else
-      getFirstUnknownName := '';
-  end;
-
-  procedure TSymbols.replaceUnknown(const name: TIdentifier; value: TUInt32);
-  var
-    symbol: PUnknownSymbol;
-  begin
-    _unknown^.moveToStart;
-    symbol := PUnknownSymbol(_unknown^.getObjectAtCursor);
-    while symbol <> nil do
-    begin
-      if symbol^.name = name then
-      begin
-        symbol^.reference^ := value;
-        _unknown^.removeObjectAtCursor;
-      end else
-        _unknown^.moveForward;
-      symbol := PUnknownSymbol(_unknown^.getObjectAtCursor);
-    end;    
+    replacePendingSymbols := true;
   end;
 
   { TSymbols private }
