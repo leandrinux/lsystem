@@ -10,7 +10,7 @@ interface
   uses
     consts, utils, uclasses, types, locale,
     uobject, uexc, ustream, umstream,
-    lcommon, lcbase;  
+    lcommon, lcbase, lliteral;  
 
   type
     PWriter = ^TWriter;
@@ -26,6 +26,7 @@ interface
     private
       _code: PStream;
       _data: PStream;
+      function getArgumentValue(arg: TSentenceArgument): TUInt32;
     end;
 
 implementation
@@ -57,7 +58,6 @@ implementation
   begin
     with sentence do
     begin
-
       { opcode }
       data[0] := opcode;
 
@@ -65,24 +65,24 @@ implementation
       data[1] := (byte(args[0].argType) shl 4) or byte(args[1].argType);
 
       { first argument }
-      writeln('arg[0]: ', args[0].value);
-      value := hexToLong(args[0].value);
-
+      {writeln('arg[0]: ', args[0].value);}
+      {value := hexToLong(args[0].value);}
+      value := getArgumentValue(args[0]);
       data[2] := value and $FF;
       data[3] := (value shr 8) and $FF;
       data[4] := (value shr 16) and $FF;
       data[5] := (value shr 24) and $FF;
 
       { second argument }
-      writeln('arg[1]: ', args[1].value);
-      value := hexToLong(args[1].value);
+      {writeln('arg[1]: ', args[1].value);}
+      {value := hexToLong(args[1].value);}
+      value := getArgumentValue(args[1]);
       data[6] := value and $FF;
       data[7] := (value shr 8) and $FF;
       data[8] := (value shr 16) and $FF;
       data[9] := (value shr 24) and $FF;
 
       _code^.write(@data, sizeof(data));
-      writeln;
     end;
   end;
 
@@ -125,6 +125,30 @@ implementation
   end;
 
   { TWriter private }
+
+  function TWriter.getArgumentValue(arg: TSentenceArgument): TUInt32;
+  var
+    resultValue: TUInt32;
+    code, bitSize: byte;
+  begin
+    resultValue := 0;
+    case arg.argType of 
+      EParameterTypeLiteral, EParameterTypeAddress:
+      begin
+        any2int(arg.value, resultValue);
+      end;
+
+      EParameterTypeRegister:
+      begin
+        getRegisterInfoByName(arg.value, code, bitSize);
+        resultValue := code;
+      end;
+
+    else 
+      writeln('Argument value "', arg.value ,'", type ', ord(arg.argType), ' not parsed!');
+    end;  
+    getArgumentValue := resultValue;
+  end;
 
   { Other }
 
