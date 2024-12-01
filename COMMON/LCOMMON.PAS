@@ -173,7 +173,7 @@ implementation
     end;
     writeln(strformatn(str, args));
     textColor(C_MSG_COLORS[EMsgNormal]);
-    if kind = EMsgFatal then halt(1);
+    { if kind = EMsgFatal then halt(1); }
   end;
 
 end.

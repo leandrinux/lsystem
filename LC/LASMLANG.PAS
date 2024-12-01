@@ -76,13 +76,12 @@ implementation
     begin
       next;
       result := parseDataBlock;
-      if result = EParseSuccessful then writeln('data section parsed ok');
     end else
       result := EParseSuccessful;
 
     if result = EParseFatalError then
     begin
-      writeln('data block error');
+      msg(EMsgFatal, 'Data block contains errors', #0);
       exit;
     end;
 
@@ -90,11 +89,10 @@ implementation
     begin
       next;
       result := parseCodeBlock;
-      if result = EParseSuccessful then writeln('code block ok');
-      if result = EParseUnsuccessful then writeln('code block fail');
-    end else
-    begin
-      writeln('expected .code, got ''', token, '''');
+      if result = EParseUnsuccessful then
+        msg(EMsgFatal, 'Code section contains errors', #0);
+    end else begin
+      msg(EMsgFatal, 'Expected .code header, got "%0" instead.', token);
       result := EParseFatalError;
     end;
 
@@ -116,7 +114,6 @@ implementation
     if t<>nil then 
     begin
       token := t^.value;
-      { writeln(t^.value); }
     end else token := '';
   end;
   
@@ -150,7 +147,7 @@ implementation
     with sentence do success := getOpcodeInfoByName(opname, opcode, argCount);
     if not success then
     begin
-      writeln('Found invalid operation "', sentence.opname, '"');
+      msg(EMsgFatal, 'Found invalid operation "%0"', sentence.opname);
       parseSentence := EParseFatalError;
       exit;
     end;
@@ -169,7 +166,7 @@ implementation
     sentence.args[0].argType := getParameterType(token);
     if sentence.args[0].argType = EParameterTypeUnknown then 
     begin
-      writeln('expected first argument');
+      msg(EMsgFatal, 'Expected first operation argument', #0);
       parseSentence := EParseFatalError;
       exit;
     end;  
@@ -185,7 +182,7 @@ implementation
     next;
     if token <> ',' then
     begin
-      writeln('expected comma, got ', token);
+      msg(EMsgFatal, 'Expected comma, got "%0" instead.', #0);
       parseSentence := EParseFatalError;
       exit;
     end;
@@ -195,7 +192,7 @@ implementation
     sentence.args[1].argType := getParameterType(token);
     if sentence.args[1].argType = EParameterTypeUnknown then 
     begin
-      writeln('expected second argument');
+      msg(EMsgFatal, 'Expected second operation argument', #0);
       parseSentence := EParseFatalError;
       exit;
     end;
@@ -211,10 +208,9 @@ implementation
     parseCodeBlock := EParseUnsuccessful;
     count := 0;
     while parseSentence = EParseSuccessful do inc(count);
-    writeln('sentence count is ', count);
     if parseSentence = EParseFatalError then
     begin
-      writeln('code block parse error');
+      msg(EMsgFatal, 'Code section contains errors', #0);
       parseCodeBlock := EParseFatalError;
     end else 
     if count > 0 then 
@@ -233,14 +229,14 @@ implementation
     identifier := token;
     if not isValidIdentifier(identifier) then 
     begin
-      writeln('expected valid identifier, got "', token , '"');
+      msg(EMsgFatal, 'Expected valid identifier, got "%0"', token);
       parseDefinitionItem := EParseFatalError;
       exit;
     end;
     next;
     if token <> '=' then
     begin
-      writeln('expected = after definition identifier, got ', token);
+      msg(EMsgFatal, 'Expected = after definition identifier, got "%0"', token);
       parseDefinitionItem := EParseFatalError;
       exit;
     end;
@@ -248,7 +244,7 @@ implementation
     isValidNumber := any2int(token, value);
     if not isValidNumber then
     begin
-      writeln('expected a numeric literal, got ', token, ' ');
+      msg(EMsgFatal, 'Expected a numeric literal, got "%0"', token);
       parseDefinitionItem := EParseFatalError;
       exit;
     end;
@@ -280,7 +276,7 @@ implementation
       next;
       if parseDefinitionItem = EParseFatalError then
       begin
-        writeln('fatal error on data definition declaration');
+        msg(EMsgFatal, 'Definition declaration contains errors', #0);
         parseDefinitionDeclaration := EParseFatalError;
         exit;
       end;      
@@ -292,21 +288,21 @@ implementation
   begin
     if not isValidIdentifier(token) then 
     begin
-      writeln('expected valid identifier, got "', token , '"');
+      msg(EMsgFatal, 'Expected a valid identifier, got "%0"', token);
       parseVariableItem := EParseFatalError;
       exit;
     end;
     next;
     if token <> ':' then
     begin
-      writeln('expected : after variable identifier, got ', token);
+      msg(EMsgFatal, 'Expected : after variable identifier, got "%0"', token);
       parseVariableItem := EParseFatalError;
       exit;
     end;
     next;
     if not isValidVariableType(token) then 
     begin
-      writeln('expected valid variable type, got "', token , '"');
+      msg(EMsgFatal, 'Expected a valid variable type, got "%0"', token);
       parseVariableItem := EParseFatalError;
       exit;
     end;
@@ -317,7 +313,7 @@ implementation
       next;
       if not isValidLiteral(token) then
       begin
-        writeln('expected a literal, got ', token, ' ');
+        msg(EMsgFatal, 'Expected a literal, got "%0"', token);
         exit;
       end else begin
         next;
@@ -337,7 +333,7 @@ implementation
       next;
       if parseVariableItem = EParseFatalError then
       begin
-        writeln('fatal error on data variable declaration');
+        msg(EMsgFatal, 'Variable declaration contains errors', #0);
         parseVariableDeclaration := EParseFatalError;
         exit;
       end;      
@@ -355,7 +351,7 @@ implementation
       result := parseDefinitionDeclaration;
       if result = EParseFatalError then
       begin
-        writeln('error in data block declaration');
+        msg(EMsgFatal, 'Data section contains errors', #0);
         exit;
       end;
       if result = EParseUnsuccessful then
@@ -363,7 +359,7 @@ implementation
         result := parseVariableDeclaration;
         if result = EParseFatalError then
         begin
-          writeln('error in data block declaration');
+          msg(EMsgFatal, 'Data section contains errors', #0);
           exit;
         end;          
       end;
@@ -380,7 +376,7 @@ implementation
     while parseDeclaration = EParseSuccessful do;
     if parseDeclaration = EParseFatalError then
     begin
-      writeln('error in data block');
+      msg(EMsgFatal, 'Data section contains errors', #0);
       parseDataBlock := EParseFatalError;
     end else 
       parseDataBlock := EParseSuccessful;
