@@ -47,18 +47,17 @@ implementation
     tokens: PList;
     language: PLanguage;
   begin
-    write('Tokenizing... ');
+    lcommon.msg(EMsgNormal, 'Tokenizing... ', #0);
     tokenizer := new(PTokenizer, init);
     tokenizer^.tokenize(getSource);
     tokens := tokenizer^.getTokens;
-    writeln('got ', tokens^.getCount ,' tokens.');
 
     language := new (PLanguage, initWithTokens(tokens));
     language^.setDelegate(@self);
-    writeln('Parsing... ');
+    lcommon.msg(EMsgNormal, 'Parsing... ', #0);
     if language^.parseProgram <> EParseSuccessful then 
     begin
-      writeln('failed');
+      lcommon.msg(EMsgFatal, 'Parsing failed.', #0);
       exit;
     end;
 
