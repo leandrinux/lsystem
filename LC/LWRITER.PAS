@@ -8,7 +8,7 @@ unit
 interface
 
   uses
-    consts, utils, uclasses, types, locale,
+    consts, utils, uclasses, types, locale, strings,
     uobject, uexc, ustream, umstream,
     lcommon, lcbase, lliteral, lsymbols;
 
@@ -133,6 +133,12 @@ implementation
       begin
         getRegisterInfoByName(arg.value, code, bitSize);
         resultValue := code;
+      end;
+
+      EParameterTypePointer:
+      begin
+        getRegisterInfoByName(substring(arg.value, 2, length(arg.value)-2), code, bitSize);
+        resultValue := code;        
       end;
 
       EParameterTypeSymbol:
