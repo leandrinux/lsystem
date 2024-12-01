@@ -10,7 +10,7 @@ interface
   uses
     consts, utils, uclasses, types, locale,
     uobject, uexc, ustream, umstream,
-    lcommon, lcbase, lliteral;  
+    lcommon, lcbase, lliteral, lsymbols;
 
   type
     PWriter = ^TWriter;
@@ -21,11 +21,13 @@ interface
       procedure onSentence(const sentence: TSentence); 
       procedure onData(data: pointer; size: longint);
       procedure save(output: PStream);
+      procedure setSymbols(symbols: PSymbols);
       function getCodeSize: longint;
       function getDataSize: longint;
     private
       _code: PStream;
       _data: PStream;
+      _symbols: PSymbols;
       function getArgumentValue(arg: TSentenceArgument): TUInt32;
     end;
 
@@ -42,12 +44,14 @@ implementation
     inherited init;
     _code := new(PMemoryStream, initWithSize(C_DEFAULT_CODE_MAX_SIZE));
     _data := new(PMemoryStream, initWithSize(C_DEFAULT_DATA_MAX_SIZE));
+    _symbols := nil;
   end;
 
   destructor TWriter.done;
   begin
     _code^.release;
     _data^.release;
+    if _symbols<>nil then _symbols^.release;
     inherited done;
   end;
   
@@ -114,6 +118,13 @@ implementation
     _code^.copyAllTo(output);
   end;
 
+  procedure TWriter.setSymbols(symbols: PSymbols);
+  begin
+    if _symbols <> nil then _symbols^.release;
+    _symbols := symbols;
+    _symbols^.retain;
+  end;
+
   function TWriter.getCodeSize: longint;
   begin
     getCodeSize := _code^.getSize;
@@ -130,12 +141,13 @@ implementation
   var
     resultValue: TUInt32;
     code, bitSize: byte;
+    success: boolean;
   begin
-    resultValue := 0;
+    getArgumentValue := 0;
     case arg.argType of 
       EParameterTypeLiteral, EParameterTypeAddress:
       begin
-        any2int(arg.value, resultValue);
+        success := any2int(arg.value, resultValue);
       end;
 
       EParameterTypeRegister:
@@ -144,7 +156,19 @@ implementation
         resultValue := code;
       end;
 
+      EParameterTypeSymbol:
+      begin
+        if _symbols = nil then exit;
+        success := _symbols^.getValue(arg.value, resultValue);
+        if not success then 
+        begin
+          writeln('Symbol "', arg.value, '" not defined yet');
+          resultValue := 0;
+        end;
+      end;
+
     else 
+      resultValue := 0;
       writeln('Argument value "', arg.value ,'", type ', ord(arg.argType), ' not parsed!');
     end;  
     getArgumentValue := resultValue;

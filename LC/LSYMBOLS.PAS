@@ -60,7 +60,7 @@ implementation
 
   procedure TSymbols.addSymbol(symbol: PSymbol);
   begin
-    writeln('Add symbol ', symbol^.name, ', value: ', symbol^.value);
+    {writeln('Add symbol ', symbol^.name, ', value: ', symbol^.value);}
     _known^.addObject(symbol);
     replaceUnknown(symbol^.name, symbol^.value);
   end;

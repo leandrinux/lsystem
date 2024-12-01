@@ -80,13 +80,17 @@ implementation
       writeln('Can''t run, parser not set');
       exit;
     end;
-    writer := new(PWriter, init);
     symbols := new(PSymbols, init);
+
+    writer := new(PWriter, init);
+    writer^.setSymbols(symbols);
+
     _parser^.setSource(source);
     _parser^.setWriter(writer);
     _parser^.setSymbols(symbols);
     _parser^.setVerbose(_verbose);
     _parser^.run;
+
     writer^.save(target);
     writer^.release;
     symbols^.release;
